@@ -162,6 +162,16 @@ public class OrderService : IOrderService
 
 ### Branches und Commits
 
+Nach Änderungen, die einen neuen Commit erfordern, gib immer eine passende Commit-Nachricht nach den oben definierten Conventional-Commit-Konventionen an.
+
+Verwende dabei das Format:
+
+<type>: <kurze Beschreibung der Änderung>
+
+Beispiel:
+
+feat: add user registration endpoint
+
 Verwende sprechende Branch-Namen mit einem passenden Präfix:
 
 ```text
