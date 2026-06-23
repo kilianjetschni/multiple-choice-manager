@@ -107,9 +107,6 @@ Bootstrap-Komponenten verwenden. Aufbau:
   **„Neue Prüfung erstellen"** (zufällige Zusammenstellung aus n Fragen). Jeder
   Eintrag verlinkt auf eine **druckbare** Liste der zugehörigen Fragen.
 
-> Hinweis aus dem Lastenheft: Die UI-Vorgaben sind nicht in Stein gemeißelt.
-> Ein vergleichbares oder besseres Design ist erlaubt, solange die Funktionalität
-> nicht wesentlich verändert wird.
 
 ## Bereitstellung
 
@@ -132,15 +129,100 @@ Bootstrap-Komponenten verwenden. Aufbau:
 - **Determinismus testen:** Zufallsauswahl für Prüfungen muss Dubletten
   ausschließen und mit konfigurierbarem n funktionieren.
 
-### Konventionen (bitte mit dem Repo abgleichen / ergänzen)
+## Konventionen
 
-- Namenskonvention für C#-Identifier: _zu ergänzen_
-- Branch-/Commit-Konvention: _zu ergänzen_
-- Build-/Run-Befehle (z. B. `dotnet build`, `dotnet run`): _zu ergänzen_
-- Test-Befehle (z. B. `dotnet test`): _zu ergänzen_
-- Migrations (z. B. `dotnet ef migrations add`, `dotnet ef database update`):
-  _zu ergänzen_
+### C#-Identifier
 
-> Die mit _zu ergänzen_ markierten Punkte standen nicht im Lastenheft. Bitte
-> nach der ersten Projekteinrichtung konkret nachtragen, damit Agents die
-> richtigen Befehle verwenden.
+Verwende englische, verständliche und pragmatische Namen. Bevorzuge klare Bezeichnungen gegenüber unnötigen Abkürzungen.
+
+* Klassen, Methoden, Properties und Enums: `PascalCase`
+* Lokale Variablen und Parameter: `camelCase`
+* Private Felder: `_camelCase`
+* Interfaces: Präfix `I`, z. B. `IUserService`
+* Asynchrone Methoden: Suffix `Async`, z. B. `GetUsersAsync`
+* Boolesche Werte als Frage oder Zustand formulieren, z. B. `isActive`, `hasPermission` oder `canEdit`
+
+```csharp
+public interface IOrderService
+{
+    Task<Order> GetOrderAsync(Guid orderId);
+}
+
+public class OrderService : IOrderService
+{
+    private readonly IOrderRepository _orderRepository;
+
+    public async Task<Order> GetOrderAsync(Guid orderId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        return order;
+    }
+}
+```
+
+### Branches und Commits
+
+Verwende sprechende Branch-Namen mit einem passenden Präfix:
+
+```text
+feature/user-registration
+fix/login-validation
+refactor/order-service
+docs/update-readme
+chore/update-dependencies
+```
+
+Commit-Nachrichten müssen dem Standard von [Conventional Commits](https://www.conventionalcommits.org/) folgen:
+
+```text
+feat: add user registration endpoint
+fix: validate empty email addresses
+refactor: simplify order mapping
+docs: update setup instructions
+test: add authentication service tests
+chore: update NuGet packages
+```
+
+### Build und Ausführung
+
+Projekt bauen:
+
+```bash
+dotnet build
+```
+
+Anwendung lokal starten:
+
+```bash
+dotnet run
+```
+
+### Tests
+
+Alle Tests ausführen:
+
+```bash
+dotnet test
+```
+
+### Datenbankmigrationen
+
+Neue Migration erstellen:
+
+```bash
+dotnet ef migrations add <MigrationName>
+```
+
+Migrationen auf die Datenbank anwenden:
+
+```bash
+dotnet ef database update
+```
+
+Migrationen klar und fachlich benennen:
+
+```bash
+dotnet ef migrations add AddUserRoles
+dotnet ef migrations add CreateInitialSchema
+```
+
