@@ -4,6 +4,9 @@ obj/
 out/
 artifacts/
 
+# Claude Settings
+.claude/
+
 # .NET generated files
 *.user
 *.rsuser
@@ -19,7 +22,6 @@ artifacts/
 .idea/
 *.sln.iml
 .vscode/*
-!.vscode/settings.json
 !.vscode/launch.json
 !.vscode/tasks.json
 !.vscode/extensions.json
