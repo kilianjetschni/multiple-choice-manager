@@ -1,0 +1,73 @@
+# Build output
+bin/
+obj/
+out/
+artifacts/
+
+# .NET generated files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.nupkg
+*.snupkg
+*.pdb
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.sln.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# ASP.NET Core local configuration and secrets
+appsettings.Local.json
+appsettings.*.Local.json
+appsettings.*.local.json
+secrets.json
+.env
+.env.*
+!.env.example
+
+# Local databases and Entity Framework temporary files
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+Migrations/*_*.Designer.cs.tmp
+
+# Test results and coverage
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+lcov.info
+*.trx
+
+# Logs and diagnostics
+logs/
+*.log
+*.binlog
+
+# Package manager caches
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Azure publish profiles can contain deployment credentials.
+*.pubxml.user
+*.publishsettings
+**/Properties/PublishProfiles/*.pubxml

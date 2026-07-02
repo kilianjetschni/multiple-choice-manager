@@ -8,19 +8,19 @@
     "net10.0": []
   },
   "packageFolders": {
-    "/Users/omidsedighi-mornani/.nuget/packages/": {}
+    "/Users/kilianjetschni/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/omidsedighi-mornani/Desktop/STUDIUM WIRTSCHAFTSINFORMATIK/Semester 6/Web Engineering/multiple-choice-manager/MultipleChoiceManager/MultipleChoiceManager.csproj",
+      "projectUniqueName": "/Users/kilianjetschni/Library/CloudStorage/OneDrive-Personal/Uni/6 - SS 26/Web Engineering/multiple-choice-manager/MultipleChoiceManager/MultipleChoiceManager.csproj",
       "projectName": "MultipleChoiceManager",
-      "projectPath": "/Users/omidsedighi-mornani/Desktop/STUDIUM WIRTSCHAFTSINFORMATIK/Semester 6/Web Engineering/multiple-choice-manager/MultipleChoiceManager/MultipleChoiceManager.csproj",
-      "packagesPath": "/Users/omidsedighi-mornani/.nuget/packages/",
-      "outputPath": "/Users/omidsedighi-mornani/Desktop/STUDIUM WIRTSCHAFTSINFORMATIK/Semester 6/Web Engineering/multiple-choice-manager/MultipleChoiceManager/obj/",
+      "projectPath": "/Users/kilianjetschni/Library/CloudStorage/OneDrive-Personal/Uni/6 - SS 26/Web Engineering/multiple-choice-manager/MultipleChoiceManager/MultipleChoiceManager.csproj",
+      "packagesPath": "/Users/kilianjetschni/.nuget/packages/",
+      "outputPath": "/Users/kilianjetschni/Library/CloudStorage/OneDrive-Personal/Uni/6 - SS 26/Web Engineering/multiple-choice-manager/MultipleChoiceManager/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/omidsedighi-mornani/.nuget/NuGet/NuGet.Config"
+        "/Users/kilianjetschni/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
@@ -68,7 +68,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.202/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
