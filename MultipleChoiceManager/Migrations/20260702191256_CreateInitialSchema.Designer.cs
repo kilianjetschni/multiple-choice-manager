@@ -12,7 +12,7 @@ using MultipleChoiceManager.Data;
 namespace MultipleChoiceManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260702190417_CreateInitialSchema")]
+    [Migration("20260702191256_CreateInitialSchema")]
     partial class CreateInitialSchema
     {
         /// <inheritdoc />
