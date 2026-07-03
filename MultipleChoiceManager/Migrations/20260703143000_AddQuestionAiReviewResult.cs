@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using MultipleChoiceManager.Data;
 
 #nullable disable
 
 namespace MultipleChoiceManager.Migrations;
 
+[DbContext(typeof(ApplicationDbContext))]
 [Migration("20260703143000_AddQuestionAiReviewResult")]
 public partial class AddQuestionAiReviewResult : Migration
 {
