@@ -8,6 +8,10 @@ public class Question
 
     public int ChapterId { get; set; }
 
+    public string? AiReviewResultJson { get; set; }
+
+    public DateTime? AiReviewedAtUtc { get; set; }
+
     public Chapter? Chapter { get; set; }
 
     public List<AnswerOption> AnswerOptions { get; set; } = [];

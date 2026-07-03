@@ -151,6 +151,12 @@ namespace MultipleChoiceManager.Migrations
                     b.Property<int>("ChapterId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AiReviewResultJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("AiReviewedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(1000)

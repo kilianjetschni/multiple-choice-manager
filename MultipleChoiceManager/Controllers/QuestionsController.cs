@@ -168,6 +168,8 @@ public class QuestionsController(
         }
 
         question.Text = viewModel.Text;
+        question.AiReviewResultJson = null;
+        question.AiReviewedAtUtc = null;
 
         // Bestehende Optionen anhand der mitgesendeten Ids aktualisieren; Optionen ohne
         // bekannte Id werden neu angelegt, nicht mehr enthaltene entfernt EF als Waisen.
@@ -325,7 +327,6 @@ public class QuestionsController(
     {
         var question = await _context.Questions
             .Include(q => q.AnswerOptions.OrderBy(a => a.Id))
-            .AsNoTracking()
             .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
 
         if (question is null)
@@ -344,7 +345,11 @@ public class QuestionsController(
                 }),
                 cancellationToken);
 
-            TempData["AiReviewResult"] = JsonSerializer.Serialize(review, JsonOptions);
+            question.AiReviewResultJson = JsonSerializer.Serialize(review, JsonOptions);
+            question.AiReviewedAtUtc = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+
+            TempData["AiReviewQuestionId"] = question.Id.ToString();
         }
         catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ArgumentException)
         {

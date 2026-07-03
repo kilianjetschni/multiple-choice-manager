@@ -47,6 +47,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Question>(question =>
         {
             question.Property(q => q.Text).HasMaxLength(1000);
+            question.Property(q => q.AiReviewResultJson);
 
             question.HasMany(q => q.AnswerOptions)
                 .WithOne(a => a.Question)

@@ -5,9 +5,8 @@
     ViewData["Title"] = $"Fragen – {Model.Title}";
     var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
     var proposalJson = TempData["AiQuestionProposal"] as string;
-    var reviewResultJson = TempData["AiReviewResult"] as string;
+    var autoOpenReviewQuestionId = TempData["AiReviewQuestionId"] as string;
     AiQuestionProposalViewModel? questionProposal = null;
-    QuestionReviewResultDto? reviewResult = null;
 
     if (!string.IsNullOrWhiteSpace(proposalJson))
     {
@@ -18,18 +17,6 @@
         catch (JsonException)
         {
             questionProposal = null;
-        }
-    }
-
-    if (!string.IsNullOrWhiteSpace(reviewResultJson))
-    {
-        try
-        {
-            reviewResult = JsonSerializer.Deserialize<QuestionReviewResultDto>(reviewResultJson, jsonOptions);
-        }
-        catch (JsonException)
-        {
-            reviewResult = null;
         }
     }
 }
@@ -119,12 +106,19 @@ else
                 </div>
             }
             <div class="list-group-item d-flex justify-content-end gap-2">
+                @if (!string.IsNullOrWhiteSpace(question.AiReviewResultJson))
+                {
+                    <button type="button" class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal" data-bs-target="#aiReviewModal-@question.Id">
+                        <i class="bi bi-eye me-1"></i>Prüfung anzeigen
+                    </button>
+                }
                 <form asp-action="Review" asp-route-id="@question.Id" method="post"
                       data-ai-busy-form
                       data-ai-busy-title="KI prüft die Frage"
                       data-ai-busy-message="Frage und Antwortoptionen werden geprüft. Währenddessen ist die Oberfläche gesperrt.">
                     <button type="submit" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-check2-circle me-1"></i>Prüfen
+                        <i class="bi bi-check2-circle me-1"></i>@(string.IsNullOrWhiteSpace(question.AiReviewResultJson) ? "Prüfen" : "Neu prüfen")
                     </button>
                 </form>
                 <a asp-action="Edit" asp-route-id="@question.Id" class="btn btn-sm btn-outline-secondary">
@@ -159,6 +153,120 @@ else
                         <form asp-action="Delete" asp-route-id="@question.Id" method="post">
                             <button type="submit" class="btn btn-danger">Löschen</button>
                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @foreach (var question in Model.Questions.Where(q => !string.IsNullOrWhiteSpace(q.AiReviewResultJson)))
+    {
+        QuestionReviewResultDto? savedReviewResult = null;
+
+        try
+        {
+            savedReviewResult = JsonSerializer.Deserialize<QuestionReviewResultDto>(question.AiReviewResultJson!, jsonOptions);
+        }
+        catch (JsonException)
+        {
+            savedReviewResult = null;
+        }
+
+        if (savedReviewResult is null)
+        {
+            continue;
+        }
+
+        <div class="modal fade" id="aiReviewModal-@question.Id" tabindex="-1" aria-labelledby="aiReviewModalLabel-@question.Id" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <p class="fw-semibold mb-1 @(savedReviewResult.HasCriticalIssues ? "text-warning" : "text-success")">
+                                <i class="bi @(savedReviewResult.HasCriticalIssues ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill") me-1"></i>
+                                @savedReviewResult.OverallVerdict
+                            </p>
+                            <h2 class="modal-title fs-5" id="aiReviewModalLabel-@question.Id">KI-Prüfung der Frage</h2>
+                            @if (question.AiReviewedAtUtc is not null)
+                            {
+                                <p class="text-muted small mb-0">
+                                    Geprüft am @question.AiReviewedAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") Uhr
+                                </p>
+                            }
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="lead fs-6">@savedReviewResult.Summary</p>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <section class="ai-review-panel">
+                                    <h3 class="h6 text-success">
+                                        <i class="bi bi-check2-circle me-1"></i>Stärken
+                                    </h3>
+                                    @if (savedReviewResult.Strengths.Count == 0)
+                                    {
+                                        <p class="text-muted mb-0">Keine besonderen Stärken genannt.</p>
+                                    }
+                                    else
+                                    {
+                                        <ul class="mb-0 ps-3">
+                                            @foreach (var strength in savedReviewResult.Strengths)
+                                            {
+                                                <li>@strength</li>
+                                            }
+                                        </ul>
+                                    }
+                                </section>
+                            </div>
+                            <div class="col-md-4">
+                                <section class="ai-review-panel">
+                                    <h3 class="h6 text-warning">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Auffälligkeiten
+                                    </h3>
+                                    @if (savedReviewResult.Issues.Count == 0)
+                                    {
+                                        <p class="text-muted mb-0">Keine Auffälligkeiten erkannt.</p>
+                                    }
+                                    else
+                                    {
+                                        <ul class="mb-0 ps-3">
+                                            @foreach (var issue in savedReviewResult.Issues)
+                                            {
+                                                <li>@issue</li>
+                                            }
+                                        </ul>
+                                    }
+                                </section>
+                            </div>
+                            <div class="col-md-4">
+                                <section class="ai-review-panel">
+                                    <h3 class="h6 text-primary">
+                                        <i class="bi bi-tools me-1"></i>Vorschläge
+                                    </h3>
+                                    @if (savedReviewResult.Suggestions.Count == 0)
+                                    {
+                                        <p class="text-muted mb-0">Keine Änderungsvorschläge.</p>
+                                    }
+                                    else
+                                    {
+                                        <ul class="mb-0 ps-3">
+                                            @foreach (var suggestion in savedReviewResult.Suggestions)
+                                            {
+                                                <li>@suggestion</li>
+                                            }
+                                        </ul>
+                                    }
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a asp-action="Edit" asp-route-id="@question.Id" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-1"></i>Frage bearbeiten
+                        </a>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Schließen</button>
                     </div>
                 </div>
             </div>
@@ -248,94 +356,6 @@ else
     </div>
 }
 
-@if (reviewResult is not null)
-{
-    <div class="modal fade" id="aiReviewModal" tabindex="-1" aria-labelledby="aiReviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <p class="fw-semibold mb-1 @(reviewResult.HasCriticalIssues ? "text-warning" : "text-success")">
-                            <i class="bi @(reviewResult.HasCriticalIssues ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill") me-1"></i>
-                            @reviewResult.OverallVerdict
-                        </p>
-                        <h2 class="modal-title fs-5" id="aiReviewModalLabel">KI-Prüfung der Frage</h2>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="lead fs-6">@reviewResult.Summary</p>
-
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <section class="ai-review-panel">
-                                <h3 class="h6 text-success">
-                                    <i class="bi bi-check2-circle me-1"></i>Stärken
-                                </h3>
-                                @if (reviewResult.Strengths.Count == 0)
-                                {
-                                    <p class="text-muted mb-0">Keine besonderen Stärken genannt.</p>
-                                }
-                                else
-                                {
-                                    <ul class="mb-0 ps-3">
-                                        @foreach (var strength in reviewResult.Strengths)
-                                        {
-                                            <li>@strength</li>
-                                        }
-                                    </ul>
-                                }
-                            </section>
-                        </div>
-                        <div class="col-md-4">
-                            <section class="ai-review-panel">
-                                <h3 class="h6 text-warning">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>Auffälligkeiten
-                                </h3>
-                                @if (reviewResult.Issues.Count == 0)
-                                {
-                                    <p class="text-muted mb-0">Keine Auffälligkeiten erkannt.</p>
-                                }
-                                else
-                                {
-                                    <ul class="mb-0 ps-3">
-                                        @foreach (var issue in reviewResult.Issues)
-                                        {
-                                            <li>@issue</li>
-                                        }
-                                    </ul>
-                                }
-                            </section>
-                        </div>
-                        <div class="col-md-4">
-                            <section class="ai-review-panel">
-                                <h3 class="h6 text-primary">
-                                    <i class="bi bi-tools me-1"></i>Vorschläge
-                                </h3>
-                                @if (reviewResult.Suggestions.Count == 0)
-                                {
-                                    <p class="text-muted mb-0">Keine Änderungsvorschläge.</p>
-                                }
-                                else
-                                {
-                                    <ul class="mb-0 ps-3">
-                                        @foreach (var suggestion in reviewResult.Suggestions)
-                                        {
-                                            <li>@suggestion</li>
-                                        }
-                                    </ul>
-                                }
-                            </section>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Schließen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
 </div>
 
 <div id="aiBusyOverlay"
@@ -378,7 +398,7 @@ else
                 new bootstrap.Modal(proposalModalElement).show();
             }
 
-            const reviewModalElement = document.getElementById('aiReviewModal');
+            const reviewModalElement = document.getElementById('aiReviewModal-@autoOpenReviewQuestionId');
             if (reviewModalElement) {
                 new bootstrap.Modal(reviewModalElement).show();
             }
