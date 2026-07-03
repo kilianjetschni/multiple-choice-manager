@@ -5,6 +5,7 @@
     var isCoursesActive = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase)
         || string.Equals(currentController, "Chapters", StringComparison.OrdinalIgnoreCase)
         || string.Equals(currentController, "Questions", StringComparison.OrdinalIgnoreCase);
+    var isExamsActive = string.Equals(currentController, "Exams", StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
 <html lang="de">
@@ -20,7 +21,7 @@
 </head>
 <body>
     <div class="d-flex flex-column flex-md-row app-shell">
-        <nav class="sidebar d-flex flex-md-column flex-row align-items-center align-items-md-stretch p-3 bg-dark" aria-label="Hauptnavigation">
+        <nav class="sidebar d-flex flex-md-column flex-row align-items-center align-items-md-stretch p-3 bg-dark d-print-none" aria-label="Hauptnavigation">
             <a class="d-flex align-items-center text-white text-decoration-none me-4 me-md-0 mb-md-4"
                asp-controller="Home" asp-action="Index">
                 <i class="bi bi-card-checklist fs-4 me-2"></i>
@@ -30,6 +31,11 @@
                 <li class="nav-item">
                     <a class="nav-link @(isCoursesActive ? "active" : "text-white")" asp-controller="Courses" asp-action="Index">
                         <i class="bi bi-mortarboard me-2"></i>Lehrveranstaltungen
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(isExamsActive ? "active" : "text-white")" asp-controller="Exams" asp-action="Index">
+                        <i class="bi bi-journal-check me-2"></i>Prüfungen
                     </a>
                 </li>
             </ul>

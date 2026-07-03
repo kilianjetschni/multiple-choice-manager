@@ -1,0 +1,53 @@
+@model Exam
+@{
+    ViewData["Title"] = $"Prüfung – {Model.Course!.Title}";
+}
+
+<nav aria-label="breadcrumb" class="d-print-none">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Prüfungen</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            @Model.Course!.Title – @Model.Date.ToString("dd.MM.yyyy")
+        </li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h1 class="h2 mb-0">Prüfung: @Model.Course!.Title</h1>
+    <button type="button" class="btn btn-outline-primary d-print-none" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i>Drucken
+    </button>
+</div>
+<p class="text-muted mb-1">Datum: @Model.Date.ToString("dd.MM.yyyy") — @Model.Questions.Count Fragen</p>
+<p class="text-muted d-print-none">
+    <i class="bi bi-check-circle-fill text-success me-1"></i>
+    markiert die richtige Antwort; beim Drucken wird die Markierung ausgeblendet.
+</p>
+
+<hr class="mb-4" />
+
+@{
+    var questionNumber = 1;
+}
+@foreach (var question in Model.Questions)
+{
+    <div class="mb-4">
+        <p class="fw-semibold mb-2">@(questionNumber++). @question.Text</p>
+        @for (var i = 0; i < question.AnswerOptions.Count; i++)
+        {
+            var option = question.AnswerOptions[i];
+            <p class="ms-3 mb-1">
+                @((char)('A' + i))) @option.Text
+                @if (option.IsCorrect)
+                {
+                    <i class="bi bi-check-circle-fill text-success ms-1 d-print-none"
+                       title="Richtige Antwort"></i>
+                }
+            </p>
+        }
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-outline-secondary d-print-none">
+    <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
+</a>
