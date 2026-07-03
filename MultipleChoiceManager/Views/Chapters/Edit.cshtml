@@ -1,0 +1,54 @@
+@model ChapterFormViewModel
+@{
+    ViewData["Title"] = "Kapitel bearbeiten";
+}
+
+<h1 class="h2 mb-1">Kapitel bearbeiten</h1>
+<p class="text-muted mb-4">Lehrveranstaltung: @Model.CourseTitle</p>
+
+<div class="col-lg-6">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CourseId" />
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ChapterNumber" class="form-label"></label>
+            <input asp-for="ChapterNumber" class="form-control" />
+            <span asp-validation-for="ChapterNumber" class="text-danger"></span>
+        </div>
+        @if (Model.ExistingSlidesUrl is not null)
+        {
+            <div class="mb-3">
+                <label class="form-label">Vorlesungsfolien (PDF)</label>
+                <div>
+                    <a href="@Model.ExistingSlidesUrl" target="_blank" rel="noopener">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>Folien (PDF)
+                    </a>
+                </div>
+                <div class="form-check mt-2">
+                    <input asp-for="RemoveExistingFile" class="form-check-input" />
+                    <label asp-for="RemoveExistingFile" class="form-check-label"></label>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label asp-for="SlidesFile" class="form-label"></label>
+                <input asp-for="SlidesFile" class="form-control" type="file" accept=".pdf,application/pdf" />
+                <span asp-validation-for="SlidesFile" class="text-danger"></span>
+            </div>
+        }
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-outline-secondary">Abbrechen</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

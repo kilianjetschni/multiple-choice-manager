@@ -64,6 +64,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Lokal hochgeladene Kapitel-PDFs (Dummy-Dateispeicher)
+MultipleChoiceManager/wwwroot/uploads/
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -73,3 +76,6 @@ desktop.ini
 *.pubxml.user
 *.publishsettings
 **/Properties/PublishProfiles/*.pubxml
+
+# User prompting
+prompt.md
