@@ -1,9 +1,55 @@
+@using System.Text.Json
+@using MultipleChoiceManager.Services.Ai
 @model Chapter
 @{
     ViewData["Title"] = $"Fragen – {Model.Title}";
-    var reviewResult = TempData["AiReviewResult"] as string;
+    var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    var proposalJson = TempData["AiQuestionProposal"] as string;
+    var reviewResultJson = TempData["AiReviewResult"] as string;
+    AiQuestionProposalViewModel? questionProposal = null;
+    QuestionReviewResultDto? reviewResult = null;
+
+    if (!string.IsNullOrWhiteSpace(proposalJson))
+    {
+        try
+        {
+            questionProposal = JsonSerializer.Deserialize<AiQuestionProposalViewModel>(proposalJson, jsonOptions);
+        }
+        catch (JsonException)
+        {
+            questionProposal = null;
+        }
+    }
+
+    if (!string.IsNullOrWhiteSpace(reviewResultJson))
+    {
+        try
+        {
+            reviewResult = JsonSerializer.Deserialize<QuestionReviewResultDto>(reviewResultJson, jsonOptions);
+        }
+        catch (JsonException)
+        {
+            reviewResult = null;
+        }
+    }
 }
 
+<style>
+    .ai-busy-overlay {
+        z-index: 2000;
+        backdrop-filter: blur(2px);
+    }
+
+    .ai-review-panel {
+        border: 1px solid var(--bs-border-color);
+        border-radius: .5rem;
+        padding: 1rem;
+        height: 100%;
+        background: var(--bs-body-bg);
+    }
+</style>
+
+<div id="aiPageContent">
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-controller="Courses" asp-action="Index">Lehrveranstaltungen</a></li>
@@ -17,7 +63,10 @@
 <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
     <h1 class="h2 mb-0">Fragen</h1>
     <div class="d-flex gap-2">
-        <form asp-action="Generate" method="post">
+        <form asp-action="Generate" method="post"
+              data-ai-busy-form
+              data-ai-busy-title="KI erstellt einen Fragenvorschlag"
+              data-ai-busy-message="Die PDF wird analysiert. Währenddessen ist die Oberfläche gesperrt.">
             <input type="hidden" name="chapterId" value="@Model.Id" />
             <button type="submit" class="btn btn-success" disabled="@string.IsNullOrWhiteSpace(Model.SlidesBlobUrl)">
                 <i class="bi bi-stars me-1"></i>Neue Frage generieren
@@ -70,7 +119,10 @@ else
                 </div>
             }
             <div class="list-group-item d-flex justify-content-end gap-2">
-                <form asp-action="Review" asp-route-id="@question.Id" method="post">
+                <form asp-action="Review" asp-route-id="@question.Id" method="post"
+                      data-ai-busy-form
+                      data-ai-busy-title="KI prüft die Frage"
+                      data-ai-busy-message="Frage und Antwortoptionen werden geprüft. Währenddessen ist die Oberfläche gesperrt.">
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-check2-circle me-1"></i>Prüfen
                     </button>
@@ -114,17 +166,168 @@ else
     }
 }
 
-@if (!string.IsNullOrWhiteSpace(reviewResult))
+@if (questionProposal is not null)
 {
-    <div class="modal fade" id="aiReviewModal" tabindex="-1" aria-labelledby="aiReviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
+    var selectedCorrectOptionIndex = questionProposal.CorrectOptionIndex
+        ?? questionProposal.Options.FindIndex(option => option.IsCorrect);
+
+    <div class="modal fade" id="aiProposalModal" tabindex="-1" aria-labelledby="aiProposalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <form asp-action="ConfirmGenerated" method="post" class="modal-content">
+                <input type="hidden" name="ChapterId" value="@questionProposal.ChapterId" />
                 <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="aiReviewModalLabel">KI-Prüfung</h2>
+                    <div>
+                        <p class="text-success fw-semibold mb-1">
+                            <i class="bi bi-stars me-1"></i>KI-Vorschlag
+                        </p>
+                        <h2 class="modal-title fs-5" id="aiProposalModalLabel">Neue Frage prüfen und bearbeiten</h2>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-0" style="white-space: pre-wrap">@reviewResult</p>
+                    <p class="text-muted">
+                        Die Frage wurde noch nicht gespeichert. Du kannst den Vorschlag hier anpassen und danach übernehmen.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="aiQuestionText" class="form-label">Fragentext</label>
+                        <textarea id="aiQuestionText"
+                                  name="QuestionText"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="1000"
+                                  required>@questionProposal.QuestionText</textarea>
+                    </div>
+
+                    <fieldset>
+                        <legend class="form-label">Antwortoptionen</legend>
+                        <div class="list-group">
+                            @for (var i = 0; i < questionProposal.Options.Count; i++)
+                            {
+                                var option = questionProposal.Options[i];
+                                <div class="list-group-item">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <div class="form-check pt-2">
+                                            <input id="aiCorrectOption-@i"
+                                                   class="form-check-input"
+                                                   type="radio"
+                                                   name="CorrectOptionIndex"
+                                                   value="@i"
+                                                   required
+                                                   checked="@(selectedCorrectOptionIndex == i)" />
+                                            <label class="form-check-label visually-hidden" for="aiCorrectOption-@i">
+                                                Antwort @(i + 1) als richtig markieren
+                                            </label>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <label class="form-label small text-muted" for="aiOptionText-@i">
+                                                Antwort @(i + 1)
+                                            </label>
+                                            <input id="aiOptionText-@i"
+                                                   type="text"
+                                                   name="Options[@i].Text"
+                                                   value="@option.Text"
+                                                   class="form-control"
+                                                   maxlength="500"
+                                                   required />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Verwerfen</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Frage speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (reviewResult is not null)
+{
+    <div class="modal fade" id="aiReviewModal" tabindex="-1" aria-labelledby="aiReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <p class="fw-semibold mb-1 @(reviewResult.HasCriticalIssues ? "text-warning" : "text-success")">
+                            <i class="bi @(reviewResult.HasCriticalIssues ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill") me-1"></i>
+                            @reviewResult.OverallVerdict
+                        </p>
+                        <h2 class="modal-title fs-5" id="aiReviewModalLabel">KI-Prüfung der Frage</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="lead fs-6">@reviewResult.Summary</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <section class="ai-review-panel">
+                                <h3 class="h6 text-success">
+                                    <i class="bi bi-check2-circle me-1"></i>Stärken
+                                </h3>
+                                @if (reviewResult.Strengths.Count == 0)
+                                {
+                                    <p class="text-muted mb-0">Keine besonderen Stärken genannt.</p>
+                                }
+                                else
+                                {
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var strength in reviewResult.Strengths)
+                                        {
+                                            <li>@strength</li>
+                                        }
+                                    </ul>
+                                }
+                            </section>
+                        </div>
+                        <div class="col-md-4">
+                            <section class="ai-review-panel">
+                                <h3 class="h6 text-warning">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Auffälligkeiten
+                                </h3>
+                                @if (reviewResult.Issues.Count == 0)
+                                {
+                                    <p class="text-muted mb-0">Keine Auffälligkeiten erkannt.</p>
+                                }
+                                else
+                                {
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var issue in reviewResult.Issues)
+                                        {
+                                            <li>@issue</li>
+                                        }
+                                    </ul>
+                                }
+                            </section>
+                        </div>
+                        <div class="col-md-4">
+                            <section class="ai-review-panel">
+                                <h3 class="h6 text-primary">
+                                    <i class="bi bi-tools me-1"></i>Vorschläge
+                                </h3>
+                                @if (reviewResult.Suggestions.Count == 0)
+                                {
+                                    <p class="text-muted mb-0">Keine Änderungsvorschläge.</p>
+                                }
+                                else
+                                {
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var suggestion in reviewResult.Suggestions)
+                                        {
+                                            <li>@suggestion</li>
+                                        }
+                                    </ul>
+                                }
+                            </section>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Schließen</button>
@@ -132,11 +335,53 @@ else
             </div>
         </div>
     </div>
+}
+</div>
 
-    @section Scripts {
-        <script>
-            const aiReviewModal = new bootstrap.Modal(document.getElementById('aiReviewModal'));
-            aiReviewModal.show();
-        </script>
-    }
+<div id="aiBusyOverlay"
+     class="ai-busy-overlay position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-none align-items-center justify-content-center text-white"
+     role="status"
+     aria-live="polite"
+     aria-modal="true">
+    <div class="text-center px-4">
+        <div class="spinner-border mb-3" aria-hidden="true"></div>
+        <h2 id="aiBusyTitle" class="h5">KI arbeitet</h2>
+        <p id="aiBusyMessage" class="mb-0">Bitte warten. Die Oberfläche ist währenddessen gesperrt.</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const overlay = document.getElementById('aiBusyOverlay');
+            const title = document.getElementById('aiBusyTitle');
+            const message = document.getElementById('aiBusyMessage');
+
+            document.querySelectorAll('form[data-ai-busy-form]').forEach((form) => {
+                form.addEventListener('submit', () => {
+                    title.textContent = form.dataset.aiBusyTitle || 'KI arbeitet';
+                    message.textContent = form.dataset.aiBusyMessage || 'Bitte warten. Die Oberfläche ist währenddessen gesperrt.';
+                    overlay.classList.remove('d-none');
+                    overlay.classList.add('d-flex');
+                    document.getElementById('aiPageContent')?.setAttribute('inert', '');
+                    document.body.style.overflow = 'hidden';
+                    document.body.setAttribute('aria-busy', 'true');
+
+                    form.querySelectorAll('button').forEach((button) => {
+                        button.disabled = true;
+                    });
+                });
+            });
+
+            const proposalModalElement = document.getElementById('aiProposalModal');
+            if (proposalModalElement) {
+                new bootstrap.Modal(proposalModalElement).show();
+            }
+
+            const reviewModalElement = document.getElementById('aiReviewModal');
+            if (reviewModalElement) {
+                new bootstrap.Modal(reviewModalElement).show();
+            }
+        })();
+    </script>
 }

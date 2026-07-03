@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MultipleChoiceManager.Data;
@@ -13,6 +14,8 @@ public class QuestionsController(
     IFileStorageService fileStorage,
     IQuestionAiService questionAiService) : Controller
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly ApplicationDbContext _context = context;
 
     private readonly IFileStorageService _fileStorage = fileStorage;
@@ -244,21 +247,20 @@ public class QuestionsController(
                 chapter.Title,
                 cancellationToken);
 
-            var question = new Question
+            var proposal = new AiQuestionProposalViewModel
             {
                 ChapterId = chapter.Id,
-                Text = generatedQuestion.QuestionText,
-                AnswerOptions = [.. generatedQuestion.Options.Select(option => new AnswerOption
+                QuestionText = generatedQuestion.QuestionText,
+                Options = [.. generatedQuestion.Options.Select(option => new AiAnswerOptionProposalViewModel
                 {
                     Text = option.AnswerText,
                     IsCorrect = option.IsCorrect
-                })]
+                })],
+                CorrectOptionIndex = generatedQuestion.Options.FindIndex(option => option.IsCorrect)
             };
 
-            _context.Questions.Add(question);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            TempData["AiSuccess"] = "Die KI-Frage wurde erzeugt und gespeichert.";
+            TempData["AiQuestionProposal"] = JsonSerializer.Serialize(proposal, JsonOptions);
+            TempData["AiSuccess"] = "Die KI hat einen Fragenvorschlag erzeugt. Bitte prüfe und bestätige ihn.";
         }
         catch (Exception ex) when (ex is InvalidOperationException or FileNotFoundException or HttpRequestException or ArgumentException)
         {
@@ -266,6 +268,55 @@ public class QuestionsController(
         }
 
         return RedirectToAction(nameof(Index), new { chapterId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmGenerated(AiQuestionProposalViewModel viewModel, CancellationToken cancellationToken)
+    {
+        var chapter = await _context.Chapters
+            .FirstOrDefaultAsync(ch => ch.Id == viewModel.ChapterId, cancellationToken);
+
+        if (chapter is null)
+        {
+            return NotFound();
+        }
+
+        if (viewModel.Options.Count != QuestionFormViewModel.AnswerOptionCount)
+        {
+            TempData["AiError"] = "Der KI-Vorschlag enthält nicht genau vier Antwortoptionen und wurde nicht gespeichert.";
+            return RedirectToAction(nameof(Index), new { chapterId = viewModel.ChapterId });
+        }
+
+        if (viewModel.CorrectOptionIndex is null)
+        {
+            TempData["AiError"] = "Bitte markiere genau eine Antwort als richtig.";
+            return RedirectToAction(nameof(Index), new { chapterId = viewModel.ChapterId });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            TempData["AiError"] = "Der KI-Vorschlag ist unvollständig und wurde nicht gespeichert.";
+            return RedirectToAction(nameof(Index), new { chapterId = viewModel.ChapterId });
+        }
+
+        var question = new Question
+        {
+            ChapterId = chapter.Id,
+            Text = viewModel.QuestionText,
+            AnswerOptions = [.. viewModel.Options.Select((option, index) => new AnswerOption
+            {
+                Text = option.Text,
+                IsCorrect = index == viewModel.CorrectOptionIndex
+            })]
+        };
+
+        _context.Questions.Add(question);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        TempData["AiSuccess"] = "Die KI-Frage wurde gespeichert.";
+
+        return RedirectToAction(nameof(Index), new { chapterId = viewModel.ChapterId });
     }
 
     [HttpPost]
@@ -284,10 +335,16 @@ public class QuestionsController(
 
         try
         {
-            TempData["AiReviewResult"] = await _questionAiService.ReviewQuestionAsync(
+            var review = await _questionAiService.ReviewQuestionAsync(
                 question.Text,
-                question.AnswerOptions.Select(a => a.Text),
+                question.AnswerOptions.Select(a => new AnswerOptionReviewDto
+                {
+                    Text = a.Text,
+                    IsCorrect = a.IsCorrect
+                }),
                 cancellationToken);
+
+            TempData["AiReviewResult"] = JsonSerializer.Serialize(review, JsonOptions);
         }
         catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ArgumentException)
         {

@@ -7,8 +7,8 @@ public interface IQuestionAiService
         string chapterTitle,
         CancellationToken cancellationToken = default);
 
-    Task<string> ReviewQuestionAsync(
+    Task<QuestionReviewResultDto> ReviewQuestionAsync(
         string questionText,
-        IEnumerable<string> answerOptions,
+        IEnumerable<AnswerOptionReviewDto> answerOptions,
         CancellationToken cancellationToken = default);
 }
