@@ -19,11 +19,22 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
     {
         var course = await _context.Courses
             .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber))
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == courseId);
 
         if (course is null)
         {
             return NotFound();
+        }
+
+        // Gespeicherte Blob-URIs nur für die Anzeige durch abrufbare Download-URLs
+        // ersetzen (SAS); die Entities sind hier nicht getrackt, es wird nichts gespeichert.
+        foreach (var chapter in course.Chapters)
+        {
+            if (chapter.SlidesBlobUrl is not null)
+            {
+                chapter.SlidesBlobUrl = _fileStorage.GetDownloadUrl(chapter.SlidesBlobUrl);
+            }
         }
 
         return View(course);
@@ -107,7 +118,9 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
             CourseTitle = chapter.Course!.Title,
             Title = chapter.Title,
             ChapterNumber = chapter.ChapterNumber,
-            ExistingSlidesUrl = chapter.SlidesBlobUrl
+            ExistingSlidesUrl = chapter.SlidesBlobUrl is null
+                ? null
+                : _fileStorage.GetDownloadUrl(chapter.SlidesBlobUrl)
         };
 
         return View(viewModel);
@@ -137,7 +150,9 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
         {
             viewModel.CourseId = chapter.CourseId;
             viewModel.CourseTitle = chapter.Course!.Title;
-            viewModel.ExistingSlidesUrl = chapter.SlidesBlobUrl;
+            viewModel.ExistingSlidesUrl = chapter.SlidesBlobUrl is null
+                ? null
+                : _fileStorage.GetDownloadUrl(chapter.SlidesBlobUrl);
             return View(viewModel);
         }
 

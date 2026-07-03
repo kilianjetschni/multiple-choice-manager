@@ -10,7 +10,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseAzureSql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+// Dateispeicher: Azure Blob Storage (für lokale Dummy-Ablage stattdessen
+// LocalFileStorageService registrieren).
+builder.Services.AddSingleton<IFileStorageService, AzureBlobStorageService>();
 
 var app = builder.Build();
 

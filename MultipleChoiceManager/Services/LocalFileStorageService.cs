@@ -33,4 +33,9 @@ public class LocalFileStorageService(IWebHostEnvironment environment) : IFileSto
 
         return Task.CompletedTask;
     }
+
+    public string GetDownloadUrl(string fileUrl)
+    {
+        return fileUrl;
+    }
 }
