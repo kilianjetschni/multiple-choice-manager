@@ -1,8 +1,23 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="px-4 py-5 my-5 text-center">
+    <i class="bi bi-card-checklist display-1 text-primary"></i>
+    <h1 class="display-5 fw-bold text-body-emphasis mt-3">Multiple-Choice-Manager</h1>
+    <div class="col-lg-8 mx-auto">
+        <p class="lead mb-4">
+            Der Multiple-Choice-Manager unterstützt Lehrstühle bei der Erstellung von
+            Multiple-Choice-Klausuren. Verwalten Sie Ihre Lehrveranstaltungen mit Kapiteln und
+            Vorlesungsfolien (PDF), pflegen Sie je Kapitel einen Fragenkatalog und stellen Sie
+            daraus per Zufall Prüfungen zusammen. Mit KI-Unterstützung lassen sich neue Fragen
+            aus den hochgeladenen Folien generieren und bestehende Fragen auf sprachliche
+            Korrektheit und Eindeutigkeit prüfen.
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a class="btn btn-primary btn-lg px-4" asp-controller="Courses" asp-action="Index">
+                <i class="bi bi-mortarboard me-2"></i>Zu den Lehrveranstaltungen
+            </a>
+        </div>
+    </div>
+</section>

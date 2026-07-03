@@ -1,47 +1,47 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var currentController = ViewContext.RouteData.Values["controller"] as string;
+    var isHomeActive = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
+    // Kapitel sind nur über die Lehrveranstaltungen erreichbar, daher bleibt der Tab dort aktiv.
+    var isCoursesActive = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(currentController, "Chapters", StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="de">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MultipleChoiceManager</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MultipleChoiceManager.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MultipleChoiceManager</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+    <div class="d-flex flex-column flex-md-row app-shell">
+        <nav class="sidebar d-flex flex-md-column flex-row align-items-center align-items-md-stretch p-3 bg-dark" aria-label="Hauptnavigation">
+            <a class="d-flex align-items-center text-white text-decoration-none me-4 me-md-0 mb-md-4"
+               asp-controller="Home" asp-action="Index">
+                <i class="bi bi-card-checklist fs-4 me-2"></i>
+                <span class="fs-5 fw-semibold">MC-Manager</span>
+            </a>
+            <ul class="nav nav-pills flex-md-column flex-row mb-auto">
+                <li class="nav-item">
+                    <a class="nav-link @(isHomeActive ? "active" : "text-white")" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-house me-2"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(isCoursesActive ? "active" : "text-white")" asp-controller="Courses" asp-action="Index">
+                        <i class="bi bi-mortarboard me-2"></i>Lehrveranstaltungen
+                    </a>
+                </li>
+            </ul>
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="flex-grow-1 p-4">
             @RenderBody()
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MultipleChoiceManager - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

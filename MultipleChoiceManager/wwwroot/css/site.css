@@ -17,8 +17,15 @@ html {
   min-height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
+.app-shell {
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+  }
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
