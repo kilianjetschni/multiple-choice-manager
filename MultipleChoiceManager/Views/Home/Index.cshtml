@@ -1,22 +1,178 @@
 @{
     ViewData["Title"] = "Home";
+    Layout = "_LandingLayout";
 }
 
-<section class="px-4 py-5 my-5 text-center">
-    <i class="bi bi-card-checklist display-1 text-primary"></i>
-    <h1 class="display-5 fw-bold text-body-emphasis mt-3">Multiple-Choice-Manager</h1>
-    <div class="col-lg-8 mx-auto">
-        <p class="lead mb-4">
-            Der Multiple-Choice-Manager unterstützt Lehrstühle bei der Erstellung von
-            Multiple-Choice-Klausuren. Verwalten Sie Ihre Lehrveranstaltungen mit Kapiteln und
-            Vorlesungsfolien (PDF), pflegen Sie je Kapitel einen Fragenkatalog und stellen Sie
-            daraus per Zufall Prüfungen zusammen. Mit KI-Unterstützung lassen sich neue Fragen
-            aus den hochgeladenen Folien generieren und bestehende Fragen auf sprachliche
-            Korrektheit und Eindeutigkeit prüfen.
-        </p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            <a class="btn btn-primary btn-lg px-4" asp-controller="Courses" asp-action="Index">
-                <i class="bi bi-mortarboard me-2"></i>Zu den Lehrveranstaltungen
+<section class="landing-hero text-center px-4 py-5">
+    <div class="container py-5">
+        <span class="badge rounded-pill text-bg-light border mb-4">
+            <i class="bi bi-mortarboard me-1"></i>Für Lehrstühle &amp; Dozierende
+        </span>
+        <h1 class="display-4 fw-bold text-body-emphasis">
+            Multiple-Choice-Klausuren<br class="d-none d-md-inline" />
+            <span class="text-primary">einfach verwalten</span>
+        </h1>
+        <div class="col-lg-8 mx-auto">
+            <p class="lead mb-4 mt-3">
+                Der Multiple-Choice-Manager unterstützt Lehrstühle bei der Erstellung von
+                Multiple-Choice-Klausuren: Lehrveranstaltungen mit Kapiteln und Vorlesungsfolien
+                verwalten, Fragenkataloge pflegen und daraus per Zufall Prüfungen zusammenstellen –
+                mit KI-Unterstützung für neue und bestehende Fragen.
+            </p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a class="btn btn-primary btn-lg px-4" asp-route="app">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>App öffnen
+                </a>
+                <a class="btn btn-outline-secondary btn-lg px-4" href="#features">
+                    Mehr erfahren
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="py-5">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Alles für die Klausurerstellung an einem Ort</h2>
+            <p class="text-body-secondary col-lg-7 mx-auto">
+                Vom Vorlesungsmaterial bis zur fertigen Prüfung – der MC-Manager begleitet den
+                gesamten Ablauf.
+            </p>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-primary-subtle text-primary mb-3">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">Lehrveranstaltungen &amp; Kapitel</h5>
+                        <p class="card-text text-body-secondary">
+                            Strukturieren Sie Ihre Lehrveranstaltungen in Kapitel und behalten Sie
+                            jederzeit den Überblick.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-danger-subtle text-danger mb-3">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">Vorlesungsfolien</h5>
+                        <p class="card-text text-body-secondary">
+                            Laden Sie je Kapitel die passenden Folien als PDF hoch – sicher
+                            abgelegt und jederzeit abrufbar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-success-subtle text-success mb-3">
+                            <i class="bi bi-patch-question"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">Fragenkatalog</h5>
+                        <p class="card-text text-body-secondary">
+                            Pflegen Sie pro Kapitel Multiple-Choice-Fragen mit beliebig vielen
+                            Antwortoptionen und Markierung der richtigen Antworten.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-warning-subtle text-warning-emphasis mb-3">
+                            <i class="bi bi-shuffle"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">Prüfungen per Zufall</h5>
+                        <p class="card-text text-body-secondary">
+                            Stellen Sie aus dem Fragenkatalog per Zufallsauswahl in Sekunden eine
+                            neue Klausur zusammen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-info-subtle text-info-emphasis mb-3">
+                            <i class="bi bi-stars"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">KI-generierte Fragen</h5>
+                        <p class="card-text text-body-secondary">
+                            Lassen Sie aus den hochgeladenen Folien automatisch neue
+                            Fragenvorschläge generieren.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 landing-feature-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="landing-feature-icon bg-secondary-subtle text-secondary-emphasis mb-3">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold">Qualitätsprüfung</h5>
+                        <p class="card-text text-body-secondary">
+                            Bestehende Fragen werden mit KI auf sprachliche Korrektheit und
+                            Eindeutigkeit geprüft.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="ablauf" class="py-5 bg-body-tertiary">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">So funktioniert's</h2>
+            <p class="text-body-secondary">In drei Schritten zur fertigen Klausur.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="landing-step-circle mx-auto mb-3">1</div>
+                <h5 class="fw-semibold">Struktur anlegen</h5>
+                <p class="text-body-secondary">
+                    Lehrveranstaltung erstellen, in Kapitel gliedern und die Vorlesungsfolien als
+                    PDF hochladen.
+                </p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="landing-step-circle mx-auto mb-3">2</div>
+                <h5 class="fw-semibold">Fragen pflegen</h5>
+                <p class="text-body-secondary">
+                    Fragen samt Antwortoptionen selbst erfassen oder mit KI-Unterstützung direkt
+                    aus den Folien generieren lassen.
+                </p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="landing-step-circle mx-auto mb-3">3</div>
+                <h5 class="fw-semibold">Prüfung erstellen</h5>
+                <p class="text-body-secondary">
+                    Per Zufallsauswahl eine Klausur aus dem Fragenkatalog zusammenstellen – fertig.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-4">
+        <div class="landing-cta rounded-4 text-center text-white p-5">
+            <h2 class="fw-bold mb-3">Bereit loszulegen?</h2>
+            <p class="lead mb-4 col-lg-7 mx-auto">
+                Starten Sie jetzt mit Ihrer ersten Lehrveranstaltung und bauen Sie Ihren
+                Fragenkatalog auf.
+            </p>
+            <a class="btn btn-light btn-lg px-4 fw-semibold" asp-route="app">
+                <i class="bi bi-box-arrow-in-right me-2"></i>App öffnen
             </a>
         </div>
     </div>

@@ -1,9 +1,10 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"] as string;
-    var isHomeActive = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase);
-    // Kapitel sind nur über die Lehrveranstaltungen erreichbar, daher bleibt der Tab dort aktiv.
+    // Kapitel und Fragen sind nur über die Lehrveranstaltungen erreichbar,
+    // daher bleibt der Tab dort aktiv.
     var isCoursesActive = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(currentController, "Chapters", StringComparison.OrdinalIgnoreCase);
+        || string.Equals(currentController, "Chapters", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(currentController, "Questions", StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
 <html lang="de">
@@ -26,11 +27,6 @@
                 <span class="fs-5 fw-semibold">MC-Manager</span>
             </a>
             <ul class="nav nav-pills flex-md-column flex-row mb-auto">
-                <li class="nav-item">
-                    <a class="nav-link @(isHomeActive ? "active" : "text-white")" asp-controller="Home" asp-action="Index">
-                        <i class="bi bi-house me-2"></i>Home
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link @(isCoursesActive ? "active" : "text-white")" asp-controller="Courses" asp-action="Index">
                         <i class="bi bi-mortarboard me-2"></i>Lehrveranstaltungen

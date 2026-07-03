@@ -38,6 +38,15 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+// Die eigentliche App ist unter /app erreichbar und startet mit den Lehrveranstaltungen.
+// Da diese Route vor der Default-Route registriert ist, erzeugen auch alle Links auf
+// Courses/Index die URL /app.
+app.MapControllerRoute(
+    name: "app",
+    pattern: "app",
+    defaults: new { controller = "Courses", action = "Index" })
+    .WithStaticAssets();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
