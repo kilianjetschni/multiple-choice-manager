@@ -3,12 +3,21 @@ using Microsoft.EntityFrameworkCore;
 using MultipleChoiceManager.Data;
 using MultipleChoiceManager.Models;
 using MultipleChoiceManager.Models.ViewModels;
+using MultipleChoiceManager.Services;
+using MultipleChoiceManager.Services.Ai;
 
 namespace MultipleChoiceManager.Controllers;
 
-public class QuestionsController(ApplicationDbContext context) : Controller
+public class QuestionsController(
+    ApplicationDbContext context,
+    IFileStorageService fileStorage,
+    IQuestionAiService questionAiService) : Controller
 {
     private readonly ApplicationDbContext _context = context;
+
+    private readonly IFileStorageService _fileStorage = fileStorage;
+
+    private readonly IQuestionAiService _questionAiService = questionAiService;
 
     public async Task<IActionResult> Index(int chapterId)
     {
@@ -207,6 +216,85 @@ public class QuestionsController(ApplicationDbContext context) : Controller
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index), new { chapterId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Generate(int chapterId, CancellationToken cancellationToken)
+    {
+        var chapter = await _context.Chapters
+            .FirstOrDefaultAsync(ch => ch.Id == chapterId, cancellationToken);
+
+        if (chapter is null)
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(chapter.SlidesBlobUrl))
+        {
+            TempData["AiError"] = "Für dieses Kapitel ist keine PDF-Datei hinterlegt.";
+            return RedirectToAction(nameof(Index), new { chapterId });
+        }
+
+        try
+        {
+            var pdfBytes = await _fileStorage.ReadAsync(chapter.SlidesBlobUrl);
+            var generatedQuestion = await _questionAiService.GenerateQuestionAsync(
+                pdfBytes,
+                chapter.Title,
+                cancellationToken);
+
+            var question = new Question
+            {
+                ChapterId = chapter.Id,
+                Text = generatedQuestion.QuestionText,
+                AnswerOptions = [.. generatedQuestion.Options.Select(option => new AnswerOption
+                {
+                    Text = option.AnswerText,
+                    IsCorrect = option.IsCorrect
+                })]
+            };
+
+            _context.Questions.Add(question);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            TempData["AiSuccess"] = "Die KI-Frage wurde erzeugt und gespeichert.";
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or FileNotFoundException or HttpRequestException or ArgumentException)
+        {
+            TempData["AiError"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index), new { chapterId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Review(int id, CancellationToken cancellationToken)
+    {
+        var question = await _context.Questions
+            .Include(q => q.AnswerOptions.OrderBy(a => a.Id))
+            .AsNoTracking()
+            .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
+
+        if (question is null)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            TempData["AiReviewResult"] = await _questionAiService.ReviewQuestionAsync(
+                question.Text,
+                question.AnswerOptions.Select(a => a.Text),
+                cancellationToken);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ArgumentException)
+        {
+            TempData["AiError"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index), new { chapterId = question.ChapterId });
     }
 
     private static void PopulateDisplayInfo(QuestionFormViewModel viewModel, Chapter chapter)

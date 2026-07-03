@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using MultipleChoiceManager.Data;
 using MultipleChoiceManager.Services;
+using MultipleChoiceManager.Services.Ai;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.AddScoped<IQuestionAiService, GeminiQuestionAiService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseAzureSql(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -34,6 +34,19 @@ public class LocalFileStorageService(IWebHostEnvironment environment) : IFileSto
         return Task.CompletedTask;
     }
 
+    public async Task<byte[]> ReadAsync(string fileUrl)
+    {
+        var fileName = Path.GetFileName(fileUrl);
+        var filePath = Path.Combine(_environment.WebRootPath, UploadsFolder, fileName);
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("Die hinterlegte PDF-Datei wurde nicht gefunden.", filePath);
+        }
+
+        return await File.ReadAllBytesAsync(filePath);
+    }
+
     public string GetDownloadUrl(string fileUrl)
     {
         return fileUrl;

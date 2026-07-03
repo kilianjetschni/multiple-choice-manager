@@ -12,9 +12,11 @@ public class AzureBlobStorageService : IFileStorageService
     private static readonly TimeSpan DownloadUrlLifetime = TimeSpan.FromHours(1);
 
     private readonly BlobContainerClient _containerClient;
+    private readonly IWebHostEnvironment _environment;
 
-    public AzureBlobStorageService(IConfiguration configuration)
+    public AzureBlobStorageService(IConfiguration configuration, IWebHostEnvironment environment)
     {
+        _environment = environment;
         var connectionString = configuration.GetConnectionString("AzureBlobStorage");
 
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -50,6 +52,33 @@ public class AzureBlobStorageService : IFileStorageService
         {
             await _containerClient.DeleteBlobIfExistsAsync(blobName);
         }
+    }
+
+    public async Task<byte[]> ReadAsync(string fileUrl)
+    {
+        if (TryGetBlobName(fileUrl) is { } blobName)
+        {
+            var blobClient = _containerClient.GetBlobClient(blobName);
+            var response = await blobClient.DownloadContentAsync();
+            return response.Value.Content.ToArray();
+        }
+
+        if (Uri.TryCreate(fileUrl, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            using var httpClient = new HttpClient();
+            return await httpClient.GetByteArrayAsync(uri);
+        }
+
+        var relativePath = fileUrl.Replace("~", string.Empty, StringComparison.Ordinal).TrimStart('/');
+        var filePath = Path.Combine(_environment.WebRootPath, relativePath);
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("Die hinterlegte PDF-Datei wurde nicht gefunden.", filePath);
+        }
+
+        return await File.ReadAllBytesAsync(filePath);
     }
 
     public string GetDownloadUrl(string fileUrl)
