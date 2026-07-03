@@ -1,0 +1,21 @@
+@model QuestionFormViewModel
+@{
+    ViewData["Title"] = "Neue Frage";
+}
+
+<h1 class="h2 mb-1">Neue Frage</h1>
+<p class="text-muted mb-4">Kapitel: @Model.ChapterTitle — @Model.CourseTitle</p>
+
+<div class="col-lg-8">
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="ChapterId" />
+        <partial name="_QuestionFormFields" />
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a asp-action="Index" asp-route-chapterId="@Model.ChapterId" class="btn btn-outline-secondary">Abbrechen</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

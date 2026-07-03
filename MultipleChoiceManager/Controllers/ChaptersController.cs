@@ -19,6 +19,7 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
     {
         var course = await _context.Courses
             .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber))
+            .ThenInclude(ch => ch.Questions)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == courseId);
 

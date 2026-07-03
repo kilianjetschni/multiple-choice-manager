@@ -1,0 +1,84 @@
+@model Chapter
+@{
+    ViewData["Title"] = $"Fragen – {Model.Title}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Courses" asp-action="Index">Lehrveranstaltungen</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Chapters" asp-action="Index" asp-route-courseId="@Model.CourseId">@Model.Course!.Title</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.ChapterNumber. @Model.Title</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <h1 class="h2 mb-0">Fragen</h1>
+    <a asp-action="Create" asp-route-chapterId="@Model.Id" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Neue Frage
+    </a>
+</div>
+<p class="text-muted mb-4">Kapitel @Model.ChapterNumber: @Model.Title — @Model.Course!.Title</p>
+
+@if (Model.Questions.Count == 0)
+{
+    <div class="alert alert-info">Noch keine Fragen vorhanden.</div>
+}
+else
+{
+    @foreach (var question in Model.Questions)
+    {
+        <div class="list-group mb-4">
+            <div class="list-group-item list-group-item-secondary">
+                <strong>@question.Text</strong>
+            </div>
+            @foreach (var option in question.AnswerOptions)
+            {
+                <div class="list-group-item @(option.IsCorrect ? "list-group-item-success" : "")">
+                    @if (option.IsCorrect)
+                    {
+                        <i class="bi bi-check-circle-fill text-success me-2" title="Richtige Antwort"></i>
+                    }
+                    @option.Text
+                </div>
+            }
+            <div class="list-group-item d-flex justify-content-end gap-2">
+                <a asp-action="Edit" asp-route-id="@question.Id" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Bearbeiten
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                        data-bs-toggle="modal" data-bs-target="#deleteModal-@question.Id">
+                    <i class="bi bi-trash me-1"></i>Löschen
+                </button>
+            </div>
+        </div>
+    }
+
+    @foreach (var question in Model.Questions)
+    {
+        <div class="modal fade" id="deleteModal-@question.Id" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Frage löschen</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Soll die Frage <strong>@question.Text</strong> wirklich gelöscht werden?</p>
+                        <p class="text-danger mb-0">
+                            Alle Antwortoptionen werden mitgelöscht; die Frage wird auch aus
+                            gespeicherten Prüfungen entfernt.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <form asp-action="Delete" asp-route-id="@question.Id" method="post">
+                            <button type="submit" class="btn btn-danger">Löschen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

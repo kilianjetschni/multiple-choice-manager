@@ -41,6 +41,7 @@ else
                 <th>Nr.</th>
                 <th>Titel</th>
                 <th>Vorlesungsfolien</th>
+                <th>Fragen</th>
                 <th class="text-end">Aktionen</th>
             </tr>
         </thead>
@@ -61,6 +62,12 @@ else
                         {
                             <span class="text-muted">—</span>
                         }
+                    </td>
+                    <td>
+                        <a asp-controller="Questions" asp-action="Index" asp-route-chapterId="@chapter.Id"
+                           class="btn btn-sm btn-outline-primary">
+                            Fragen <span class="badge text-bg-primary">@chapter.Questions.Count</span>
+                        </a>
                     </td>
                     <td class="text-end">
                         <a asp-action="Edit" asp-route-id="@chapter.Id" class="btn btn-sm btn-outline-secondary"
