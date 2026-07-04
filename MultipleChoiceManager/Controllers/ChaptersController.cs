@@ -178,6 +178,48 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadSlides(int id, IFormFile? slidesFile)
+    {
+        var chapter = await _context.Chapters.FindAsync(id);
+
+        if (chapter is null)
+        {
+            return NotFound();
+        }
+
+        if (chapter.SlidesBlobUrl is not null)
+        {
+            TempData["SlidesUploadInfo"] = "Für dieses Kapitel ist bereits eine PDF-Datei hinterlegt.";
+            return RedirectToAction(nameof(Index), new { courseId = chapter.CourseId });
+        }
+
+        if (slidesFile is null)
+        {
+            TempData["SlidesUploadError"] = "Bitte eine PDF-Datei auswählen.";
+            return RedirectToAction(nameof(Index), new { courseId = chapter.CourseId });
+        }
+
+        ValidateSlidesFile(slidesFile);
+
+        if (!ModelState.IsValid)
+        {
+            TempData["SlidesUploadError"] = ModelState.Values
+                .SelectMany(value => value.Errors)
+                .Select(error => error.ErrorMessage)
+                .FirstOrDefault() ?? "Die PDF-Datei konnte nicht hochgeladen werden.";
+
+            return RedirectToAction(nameof(Index), new { courseId = chapter.CourseId });
+        }
+
+        chapter.SlidesBlobUrl = await _fileStorage.SaveAsync(slidesFile);
+        await _context.SaveChangesAsync();
+
+        TempData["SlidesUploadInfo"] = "Die PDF-Datei wurde hochgeladen.";
+        return RedirectToAction(nameof(Index), new { courseId = chapter.CourseId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
         // Fragen samt Prüfungen mitladen, damit EF die ExamQuestion-Join-Zeilen clientseitig

@@ -29,6 +29,16 @@
     </a>
 </div>
 
+@if (TempData["SlidesUploadError"] is string slidesUploadError)
+{
+    <div class="alert alert-danger" role="alert">@slidesUploadError</div>
+}
+
+@if (TempData["SlidesUploadInfo"] is string slidesUploadInfo)
+{
+    <div class="alert alert-success" role="alert">@slidesUploadInfo</div>
+}
+
 @if (Model.Chapters.Count == 0)
 {
     <div class="alert alert-info">Noch keine Kapitel vorhanden.</div>
@@ -51,7 +61,7 @@ else
                 <tr>
                     <td>@chapter.ChapterNumber</td>
                     <td>@chapter.Title</td>
-                    <td>
+                    <td class="@(chapter.SlidesBlobUrl is null ? "p-0" : null)">
                         @if (chapter.SlidesBlobUrl is not null)
                         {
                             <a href="@chapter.SlidesBlobUrl" target="_blank" rel="noopener">
@@ -60,7 +70,15 @@ else
                         }
                         else
                         {
-                            <span class="text-muted">—</span>
+                            <form asp-action="UploadSlides" asp-route-id="@chapter.Id" method="post"
+                                  enctype="multipart/form-data" class="m-0">
+                                <label class="d-block w-100 h-100 p-2 mb-0 text-secondary" for="slidesFile-@chapter.Id"
+                                       title="PDF hochladen" style="cursor: pointer;">
+                                    <i class="bi bi-cloud-arrow-up me-1"></i>PDF hochladen
+                                </label>
+                                <input id="slidesFile-@chapter.Id" name="slidesFile" class="visually-hidden"
+                                       type="file" accept=".pdf,application/pdf" onchange="this.form.submit()" />
+                            </form>
                         }
                     </td>
                     <td>
