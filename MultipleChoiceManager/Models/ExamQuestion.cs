@@ -9,4 +9,6 @@ public class ExamQuestion
     public int QuestionId { get; set; }
 
     public Question? Question { get; set; }
+
+    public int SortOrder { get; set; }
 }

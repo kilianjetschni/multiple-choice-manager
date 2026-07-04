@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Exam> Exams => Set<Exam>();
 
+    public DbSet<ExamQuestion> ExamQuestions => Set<ExamQuestion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Course>(course =>
@@ -68,7 +70,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                         .WithMany()
                         .HasForeignKey(eq => eq.QuestionId)
                         .OnDelete(DeleteBehavior.ClientCascade),
-                    join => join.HasKey(eq => new { eq.ExamId, eq.QuestionId }));
+                    join =>
+                    {
+                        join.ToTable("ExamQuestion");
+                        join.HasKey(eq => new { eq.ExamId, eq.QuestionId });
+                        join.Property(eq => eq.SortOrder);
+                    });
         });
 
         modelBuilder.Entity<AnswerOption>(option =>

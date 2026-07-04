@@ -99,18 +99,21 @@ public class ExamsController(ApplicationDbContext context) : Controller
 
         var selectedIds = questionIds.Take(Math.Min(requestedCount, questionIds.Length)).ToList();
 
-        var selectedQuestions = await _context.Questions
-            .Where(q => selectedIds.Contains(q.Id))
-            .ToListAsync();
-
         var exam = new Exam
         {
             Date = viewModel.Date!.Value,
-            CourseId = course.Id,
-            Questions = selectedQuestions
+            CourseId = course.Id
         };
 
         _context.Exams.Add(exam);
+
+        _context.ExamQuestions.AddRange(selectedIds.Select((questionId, index) => new ExamQuestion
+        {
+            Exam = exam,
+            QuestionId = questionId,
+            SortOrder = index + 1
+        }));
+
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { id = exam.Id });
@@ -120,8 +123,6 @@ public class ExamsController(ApplicationDbContext context) : Controller
     {
         var exam = await _context.Exams
             .Include(e => e.Course)
-            .Include(e => e.Questions.OrderBy(q => q.Id))
-            .ThenInclude(q => q.AnswerOptions.OrderBy(a => a.Id))
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -130,7 +131,109 @@ public class ExamsController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
+        var examQuestions = await _context.ExamQuestions
+            .Where(eq => eq.ExamId == id)
+            .Include(eq => eq.Question!)
+            .ThenInclude(q => q.AnswerOptions.OrderBy(a => a.Id))
+            .OrderBy(eq => eq.SortOrder)
+            .ThenBy(eq => eq.QuestionId)
+            .AsNoTracking()
+            .ToListAsync();
+
+        exam.Questions = examQuestions
+            .Select(eq => eq.Question!)
+            .ToList();
+
         return View(exam);
+    }
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        var viewModel = await BuildEditViewModelAsync(id);
+
+        if (viewModel is null)
+        {
+            return NotFound();
+        }
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, ExamEditViewModel viewModel)
+    {
+        if (id != viewModel.Id)
+        {
+            return BadRequest();
+        }
+
+        var exam = await _context.Exams
+            .Include(e => e.Course)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (exam is null)
+        {
+            return NotFound();
+        }
+
+        var selectedQuestionIds = DistinctPreservingOrder(viewModel.SelectedQuestionIds);
+
+        if (selectedQuestionIds.Count == 0)
+        {
+            ModelState.AddModelError(nameof(ExamEditViewModel.SelectedQuestionIds),
+                "Bitte mindestens eine Frage auswählen.");
+        }
+
+        var validQuestionIds = await _context.Questions
+            .Where(q => selectedQuestionIds.Contains(q.Id) && q.Chapter!.CourseId == exam.CourseId)
+            .Select(q => q.Id)
+            .ToListAsync();
+
+        if (validQuestionIds.Count != selectedQuestionIds.Count)
+        {
+            ModelState.AddModelError(nameof(ExamEditViewModel.SelectedQuestionIds),
+                "Die Prüfung darf nur Fragen aus der zugehörigen Lehrveranstaltung enthalten.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var invalidViewModel = await BuildEditViewModelAsync(id, selectedQuestionIds, viewModel.Date);
+            return invalidViewModel is null ? NotFound() : View(invalidViewModel);
+        }
+
+        exam.Date = viewModel.Date!.Value;
+
+        var existingExamQuestions = await _context.ExamQuestions
+            .Where(eq => eq.ExamId == exam.Id)
+            .ToListAsync();
+
+        var selectedQuestionIdSet = selectedQuestionIds.ToHashSet();
+        var existingExamQuestionsByQuestionId = existingExamQuestions.ToDictionary(eq => eq.QuestionId);
+
+        _context.ExamQuestions.RemoveRange(existingExamQuestions
+            .Where(eq => !selectedQuestionIdSet.Contains(eq.QuestionId)));
+
+        foreach (var (questionId, index) in selectedQuestionIds.Select((questionId, index) => (questionId, index)))
+        {
+            if (existingExamQuestionsByQuestionId.TryGetValue(questionId, out var existingExamQuestion))
+            {
+                existingExamQuestion.SortOrder = index + 1;
+            }
+            else
+            {
+                _context.ExamQuestions.Add(new ExamQuestion
+                {
+                    ExamId = exam.Id,
+                    QuestionId = questionId,
+                    SortOrder = index + 1
+                });
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Details), new { id = exam.Id });
     }
 
     [HttpPost]
@@ -155,6 +258,82 @@ public class ExamsController(ApplicationDbContext context) : Controller
     private async Task<int> CountCourseQuestionsAsync(int courseId)
     {
         return await _context.Questions.CountAsync(q => q.Chapter!.CourseId == courseId);
+    }
+
+    private async Task<ExamEditViewModel?> BuildEditViewModelAsync(
+        int examId,
+        IReadOnlyCollection<int>? selectedQuestionIds = null,
+        DateTime? dateOverride = null)
+    {
+        var exam = await _context.Exams
+            .Include(e => e.Course)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == examId);
+
+        if (exam is null)
+        {
+            return null;
+        }
+
+        var orderedSelectedQuestionIds = selectedQuestionIds?.ToList()
+            ?? await _context.ExamQuestions
+                .Where(eq => eq.ExamId == exam.Id)
+                .OrderBy(eq => eq.SortOrder)
+                .ThenBy(eq => eq.QuestionId)
+                .Select(eq => eq.QuestionId)
+                .ToListAsync();
+
+        var selectedIdSet = orderedSelectedQuestionIds.ToHashSet();
+
+        var courseQuestions = await _context.Questions
+            .Where(q => q.Chapter!.CourseId == exam.CourseId)
+            .Include(q => q.Chapter)
+            .OrderBy(q => q.Chapter!.ChapterNumber)
+            .ThenBy(q => q.Id)
+            .AsNoTracking()
+            .Select(q => new ExamEditQuestionViewModel
+            {
+                Id = q.Id,
+                Text = q.Text,
+                ChapterNumber = q.Chapter!.ChapterNumber,
+                ChapterTitle = q.Chapter.Title
+            })
+            .ToListAsync();
+
+        var questionById = courseQuestions.ToDictionary(question => question.Id);
+        var selectedQuestions = orderedSelectedQuestionIds
+            .Where(questionById.ContainsKey)
+            .Select(questionId => questionById[questionId])
+            .ToList();
+
+        return new ExamEditViewModel
+        {
+            Id = exam.Id,
+            CourseId = exam.CourseId,
+            CourseTitle = exam.Course!.Title,
+            Date = dateOverride ?? exam.Date,
+            SelectedQuestionIds = selectedQuestions.Select(question => question.Id).ToList(),
+            SelectedQuestions = selectedQuestions,
+            AvailableQuestions = courseQuestions
+                .Where(question => !selectedIdSet.Contains(question.Id))
+                .ToList()
+        };
+    }
+
+    private static List<int> DistinctPreservingOrder(IEnumerable<int> questionIds)
+    {
+        var distinctIds = new List<int>();
+        var seenIds = new HashSet<int>();
+
+        foreach (var questionId in questionIds)
+        {
+            if (seenIds.Add(questionId))
+            {
+                distinctIds.Add(questionId);
+            }
+        }
+
+        return distinctIds;
     }
 
     private static void PopulateDisplayInfo(ExamFormViewModel viewModel, Course course, int availableCount)

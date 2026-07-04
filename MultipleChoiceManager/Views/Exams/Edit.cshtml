@@ -1,0 +1,250 @@
+@model ExamEditViewModel
+@{
+    ViewData["Title"] = "Prüfung bearbeiten";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Prüfungen</a></li>
+        <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">Prüfung</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Bearbeiten</li>
+    </ol>
+</nav>
+
+<h1 class="h2 mb-1">Prüfung bearbeiten</h1>
+<p class="text-muted mb-4">Lehrveranstaltung: @Model.CourseTitle</p>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CourseId" />
+
+    <div class="mb-4 col-lg-4">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" class="form-control" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h5 mb-0">Ausgewählte Fragen</h2>
+                <span class="badge text-bg-primary" id="selectedQuestionCount">@Model.SelectedQuestions.Count</span>
+            </div>
+            <span asp-validation-for="SelectedQuestionIds" class="text-danger"></span>
+            <ul class="list-group" id="selectedQuestions">
+                @foreach (var question in Model.SelectedQuestions)
+                {
+                    <li class="list-group-item js-selected-question" draggable="true"
+                        data-question-id="@question.Id"
+                        data-question-text="@question.Text"
+                        data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
+                        <input type="hidden" name="SelectedQuestionIds" value="@question.Id" />
+                        <div class="d-flex align-items-start gap-2">
+                            <span class="text-muted" title="Reihenfolge ändern" style="cursor: grab;">
+                                <i class="bi bi-grip-vertical"></i>
+                            </span>
+                            <div class="flex-grow-1">
+                                <div class="small text-muted">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
+                                <div>@question.Text</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-remove-question"
+                                    title="Frage entfernen">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <p class="text-muted mt-2 @(Model.SelectedQuestions.Count == 0 ? null : "d-none")" id="emptySelectedMessage">
+                Noch keine Fragen ausgewählt.
+            </p>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h5 mb-0">Verfügbare Fragen</h2>
+                <span class="badge text-bg-secondary" id="availableQuestionCount">@Model.AvailableQuestions.Count</span>
+            </div>
+            <ul class="list-group" id="availableQuestions">
+                @foreach (var question in Model.AvailableQuestions)
+                {
+                    <li class="list-group-item js-available-question"
+                        data-question-id="@question.Id"
+                        data-question-text="@question.Text"
+                        data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="flex-grow-1">
+                                <div class="small text-muted">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
+                                <div>@question.Text</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary js-add-question"
+                                    title="Frage hinzufügen">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <p class="text-muted mt-2 @(Model.AvailableQuestions.Count == 0 ? null : "d-none")" id="emptyAvailableMessage">
+                Keine weiteren Fragen verfügbar.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Abbrechen</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const selectedList = document.getElementById("selectedQuestions");
+            const availableList = document.getElementById("availableQuestions");
+            const selectedCount = document.getElementById("selectedQuestionCount");
+            const availableCount = document.getElementById("availableQuestionCount");
+            const emptySelectedMessage = document.getElementById("emptySelectedMessage");
+            const emptyAvailableMessage = document.getElementById("emptyAvailableMessage");
+            let draggedItem = null;
+
+            const updateState = () => {
+                const selectedItems = selectedList.querySelectorAll(".js-selected-question");
+                const availableItems = availableList.querySelectorAll(".js-available-question:not(.d-none)");
+
+                selectedCount.textContent = selectedItems.length;
+                availableCount.textContent = availableItems.length;
+                emptySelectedMessage.classList.toggle("d-none", selectedItems.length > 0);
+                emptyAvailableMessage.classList.toggle("d-none", availableItems.length > 0);
+            };
+
+            const createSelectedItem = (sourceItem) => {
+                const item = document.createElement("li");
+                item.className = "list-group-item js-selected-question";
+                item.draggable = true;
+                item.dataset.questionId = sourceItem.dataset.questionId;
+                item.dataset.questionText = sourceItem.dataset.questionText;
+                item.dataset.chapterLabel = sourceItem.dataset.chapterLabel;
+
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "SelectedQuestionIds";
+                input.value = sourceItem.dataset.questionId;
+
+                const row = document.createElement("div");
+                row.className = "d-flex align-items-start gap-2";
+
+                const handle = document.createElement("span");
+                handle.className = "text-muted";
+                handle.title = "Reihenfolge ändern";
+                handle.style.cursor = "grab";
+                handle.innerHTML = '<i class="bi bi-grip-vertical"></i>';
+
+                const body = document.createElement("div");
+                body.className = "flex-grow-1";
+
+                const chapter = document.createElement("div");
+                chapter.className = "small text-muted";
+                chapter.textContent = sourceItem.dataset.chapterLabel;
+
+                const text = document.createElement("div");
+                text.textContent = sourceItem.dataset.questionText;
+
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "btn btn-sm btn-outline-danger js-remove-question";
+                removeButton.title = "Frage entfernen";
+                removeButton.innerHTML = '<i class="bi bi-x-lg"></i>';
+
+                body.append(chapter, text);
+                row.append(handle, body, removeButton);
+                item.append(input, row);
+
+                return item;
+            };
+
+            const getDragAfterElement = (container, y) => {
+                const draggableElements = [...container.querySelectorAll(".js-selected-question:not(.opacity-50)")];
+
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset, element: child };
+                    }
+
+                    return closest;
+                }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+            };
+
+            availableList.addEventListener("click", (event) => {
+                const addButton = event.target.closest(".js-add-question");
+
+                if (!addButton) {
+                    return;
+                }
+
+                const availableItem = addButton.closest(".js-available-question");
+
+                if (selectedList.querySelector(`[data-question-id="${availableItem.dataset.questionId}"]`)) {
+                    return;
+                }
+
+                selectedList.append(createSelectedItem(availableItem));
+                availableItem.classList.add("d-none");
+                updateState();
+            });
+
+            selectedList.addEventListener("click", (event) => {
+                const removeButton = event.target.closest(".js-remove-question");
+
+                if (!removeButton) {
+                    return;
+                }
+
+                const selectedItem = removeButton.closest(".js-selected-question");
+                const availableItem = availableList.querySelector(`[data-question-id="${selectedItem.dataset.questionId}"]`);
+
+                selectedItem.remove();
+                availableItem?.classList.remove("d-none");
+                updateState();
+            });
+
+            selectedList.addEventListener("dragstart", (event) => {
+                draggedItem = event.target.closest(".js-selected-question");
+
+                if (!draggedItem) {
+                    return;
+                }
+
+                draggedItem.classList.add("opacity-50");
+                event.dataTransfer.effectAllowed = "move";
+            });
+
+            selectedList.addEventListener("dragend", () => {
+                draggedItem?.classList.remove("opacity-50");
+                draggedItem = null;
+            });
+
+            selectedList.addEventListener("dragover", (event) => {
+                if (!draggedItem) {
+                    return;
+                }
+
+                event.preventDefault();
+                const afterElement = getDragAfterElement(selectedList, event.clientY);
+
+                if (afterElement === null) {
+                    selectedList.appendChild(draggedItem);
+                } else {
+                    selectedList.insertBefore(draggedItem, afterElement);
+                }
+            });
+
+            updateState();
+        })();
+    </script>
+}

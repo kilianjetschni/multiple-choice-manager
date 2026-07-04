@@ -14,9 +14,14 @@
 
 <div class="d-flex justify-content-between align-items-center mb-1">
     <h1 class="h2 mb-0">Prüfung: @Model.Course!.Title</h1>
-    <button type="button" class="btn btn-outline-primary d-print-none" onclick="window.print()">
-        <i class="bi bi-printer me-1"></i>Drucken
-    </button>
+    <div class="d-flex gap-2 d-print-none">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>Bearbeiten
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Drucken
+        </button>
+    </div>
 </div>
 <p class="text-muted mb-1">Datum: @Model.Date.ToString("dd.MM.yyyy") — @Model.Questions.Count Fragen</p>
 <p class="text-muted d-print-none">
