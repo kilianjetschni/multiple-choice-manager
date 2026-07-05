@@ -10,19 +10,28 @@
     </ol>
 </nav>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h1 class="h4 card-title mb-3">@Model.Title</h1>
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Dozentenname</dt>
-            <dd class="col-sm-9">@Model.LecturerName</dd>
-            <dt class="col-sm-3">Niveau</dt>
-            <dd class="col-sm-9">@Model.Level</dd>
-        </dl>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Lehrveranstaltung</span>
+        <h1>@Model.Title</h1>
+        <p class="mc-page-subtitle">Kapitel und zugehörige Vorlesungsfolien pflegen.</p>
+    </div>
+    <div class="mc-page-header-actions">
+        <span class="mc-stat-chip">
+            <i class="bi bi-person"></i>@Model.LecturerName
+        </span>
+        @if (Model.Level == CourseLevel.Master)
+        {
+            <span class="badge text-bg-primary align-self-center">@Model.Level</span>
+        }
+        else
+        {
+            <span class="badge mc-badge-outline align-self-center">@Model.Level</span>
+        }
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <h2 class="h4 mb-0">Kapitel</h2>
     <a asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>Neues Kapitel
@@ -31,96 +40,126 @@
 
 @if (TempData["SlidesUploadError"] is string slidesUploadError)
 {
-    <div class="alert alert-danger" role="alert">@slidesUploadError</div>
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-1"></i>@slidesUploadError
+    </div>
 }
 
 @if (TempData["SlidesUploadInfo"] is string slidesUploadInfo)
 {
-    <div class="alert alert-success" role="alert">@slidesUploadInfo</div>
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle me-1"></i>@slidesUploadInfo
+    </div>
 }
 
 @if (Model.Chapters.Count == 0)
 {
-    <div class="alert alert-info">Noch keine Kapitel vorhanden.</div>
+    <div class="mc-empty-state">
+        <div class="mc-empty-icon">
+            <i class="bi bi-collection"></i>
+        </div>
+        <h2 class="h4">Noch keine Kapitel</h2>
+        <p>Legen Sie das erste Kapitel an und laden Sie Vorlesungsfolien hoch.</p>
+        <a asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Neues Kapitel
+        </a>
+    </div>
 }
 else
 {
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Nr.</th>
-                <th>Titel</th>
-                <th>Vorlesungsfolien</th>
-                <th>Fragen</th>
-                <th class="text-end">Aktionen</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var chapter in Model.Chapters)
-            {
+    <div class="mc-table-wrapper">
+        <table class="table table-striped align-middle mb-0">
+            <thead>
                 <tr>
-                    <td>@chapter.ChapterNumber</td>
-                    <td>@chapter.Title</td>
-                    <td class="@(chapter.SlidesBlobUrl is null ? "p-0" : null)">
-                        @if (chapter.SlidesBlobUrl is not null)
-                        {
-                            <a href="@chapter.SlidesBlobUrl" target="_blank" rel="noopener">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Folien (PDF)
-                            </a>
-                        }
-                        else
-                        {
-                            <form asp-action="UploadSlides" asp-route-id="@chapter.Id" method="post"
-                                  enctype="multipart/form-data" class="m-0">
-                                <label class="d-block w-100 h-100 p-2 mb-0 text-secondary" for="slidesFile-@chapter.Id"
-                                       title="PDF hochladen" style="cursor: pointer;">
-                                    <i class="bi bi-cloud-arrow-up me-1"></i>PDF hochladen
-                                </label>
-                                <input id="slidesFile-@chapter.Id" name="slidesFile" class="visually-hidden"
-                                       type="file" accept=".pdf,application/pdf" onchange="this.form.submit()" />
-                            </form>
-                        }
-                    </td>
-                    <td>
-                        <a asp-controller="Questions" asp-action="Index" asp-route-chapterId="@chapter.Id"
-                           class="btn btn-sm btn-outline-primary">
-                            Fragen <span class="badge text-bg-primary">@chapter.Questions.Count</span>
-                        </a>
-                    </td>
-                    <td class="text-end">
-                        <a asp-action="Edit" asp-route-id="@chapter.Id" class="btn btn-sm btn-outline-secondary"
-                           title="Bearbeiten">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
-                                data-bs-toggle="modal" data-bs-target="#deleteModal-@chapter.Id">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
+                    <th style="width: 4rem;">Nr.</th>
+                    <th>Titel</th>
+                    <th>Vorlesungsfolien</th>
+                    <th>Fragen</th>
+                    <th class="text-end">Aktionen</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var chapter in Model.Chapters)
+                {
+                    <tr>
+                        <td>
+                            <span class="badge mc-badge-outline">@chapter.ChapterNumber</span>
+                        </td>
+                        <td class="fw-semibold text-body-emphasis">@chapter.Title</td>
+                        <td>
+                            @if (chapter.SlidesBlobUrl is not null)
+                            {
+                                <a href="@chapter.SlidesBlobUrl" target="_blank" rel="noopener"
+                                   class="mc-slides-link">
+                                    <i class="bi bi-file-earmark-pdf"></i>Folien (PDF)
+                                </a>
+                            }
+                            else
+                            {
+                                <form asp-action="UploadSlides" asp-route-id="@chapter.Id" method="post"
+                                      enctype="multipart/form-data" class="m-0">
+                                    <label class="mc-slides-upload-label mb-0" for="slidesFile-@chapter.Id"
+                                           title="PDF hochladen">
+                                        <i class="bi bi-cloud-arrow-up"></i>PDF hochladen
+                                    </label>
+                                    <input id="slidesFile-@chapter.Id" name="slidesFile" class="visually-hidden"
+                                           type="file" accept=".pdf,application/pdf" onchange="this.form.submit()" />
+                                </form>
+                            }
+                        </td>
+                        <td>
+                            <a asp-controller="Questions" asp-action="Index" asp-route-chapterId="@chapter.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-patch-question me-1"></i>Fragen
+                                <span class="badge text-bg-primary rounded-pill ms-1">@chapter.Questions.Count</span>
+                            </a>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@chapter.Id"
+                                   class="btn btn-sm btn-outline-secondary btn-icon"
+                                   title="Bearbeiten" aria-label="Bearbeiten">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
+                                        title="Löschen" aria-label="Löschen"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal-@chapter.Id">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
     @foreach (var chapter in Model.Chapters)
     {
         <div class="modal fade" id="deleteModal-@chapter.Id" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Kapitel löschen</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Soll das Kapitel <strong>@chapter.ChapterNumber. @chapter.Title</strong> wirklich gelöscht werden?</p>
-                        <p class="text-danger mb-0">
-                            Alle zugehörigen Fragen und Antwortoptionen werden ebenfalls gelöscht.
+                        <p class="mb-3">
+                            Soll das Kapitel
+                            <strong>@chapter.ChapterNumber. @chapter.Title</strong>
+                            wirklich gelöscht werden?
                         </p>
+                        <div class="alert alert-danger mb-0">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Alle zugehörigen Fragen und Antwortoptionen werden ebenfalls gelöscht.
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <form asp-action="Delete" asp-route-id="@chapter.Id" method="post">
-                            <button type="submit" class="btn btn-danger">Löschen</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <form asp-action="Delete" asp-route-id="@chapter.Id" method="post" class="m-0">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Löschen
+                            </button>
                         </form>
                     </div>
                 </div>

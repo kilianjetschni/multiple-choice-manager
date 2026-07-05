@@ -3,50 +3,76 @@
     ViewData["Title"] = "Kapitel bearbeiten";
 }
 
-<h1 class="h2 mb-1">Kapitel bearbeiten</h1>
-<p class="text-muted mb-4">Lehrveranstaltung: @Model.CourseTitle</p>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Courses" asp-action="Index">Lehrveranstaltungen</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Chapters" asp-action="Index" asp-route-courseId="@Model.CourseId">@Model.CourseTitle</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Kapitel bearbeiten</li>
+    </ol>
+</nav>
 
-<div class="col-lg-6">
-    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="CourseId" />
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label"></label>
-            <input asp-for="Title" class="form-control" />
-            <span asp-validation-for="Title" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="ChapterNumber" class="form-label"></label>
-            <input asp-for="ChapterNumber" class="form-control" />
-            <span asp-validation-for="ChapterNumber" class="text-danger"></span>
-        </div>
-        @if (Model.ExistingSlidesUrl is not null)
-        {
-            <div class="mb-3">
-                <label class="form-label">Vorlesungsfolien (PDF)</label>
-                <div>
-                    <a href="@Model.ExistingSlidesUrl" target="_blank" rel="noopener">
-                        <i class="bi bi-file-earmark-pdf me-1"></i>Folien (PDF)
-                    </a>
-                </div>
-                <div class="form-check mt-2">
-                    <input asp-for="RemoveExistingFile" class="form-check-input" />
-                    <label asp-for="RemoveExistingFile" class="form-check-label"></label>
-                </div>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Kapitel</span>
+        <h1>Kapitel bearbeiten</h1>
+        <p class="mc-page-subtitle">Lehrveranstaltung: @Model.CourseTitle</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 col-xl-6">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CourseId" />
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ChapterNumber" class="form-label"></label>
+                        <input asp-for="ChapterNumber" class="form-control" />
+                        <span asp-validation-for="ChapterNumber" class="text-danger small"></span>
+                    </div>
+
+                    @if (Model.ExistingSlidesUrl is not null)
+                    {
+                        <div class="mb-4">
+                            <label class="form-label">Vorlesungsfolien (PDF)</label>
+                            <div class="mc-soft-panel d-flex flex-wrap align-items-center justify-content-between gap-3 py-2 px-3">
+                                <a href="@Model.ExistingSlidesUrl" target="_blank" rel="noopener" class="mc-slides-link">
+                                    <i class="bi bi-file-earmark-pdf"></i>Aktuelle Folien anzeigen
+                                </a>
+                                <div class="form-check m-0">
+                                    <input asp-for="RemoveExistingFile" class="form-check-input" />
+                                    <label asp-for="RemoveExistingFile" class="form-check-label"></label>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <label asp-for="SlidesFile" class="form-label"></label>
+                            <input asp-for="SlidesFile" class="form-control" type="file" accept=".pdf,application/pdf" />
+                            <div class="form-text">Optional. Nur PDF-Dateien.</div>
+                            <span asp-validation-for="SlidesFile" class="text-danger small"></span>
+                        </div>
+                    }
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Speichern
+                        </button>
+                        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-outline-secondary">Abbrechen</a>
+                    </div>
+                </form>
             </div>
-        }
-        else
-        {
-            <div class="mb-3">
-                <label asp-for="SlidesFile" class="form-label"></label>
-                <input asp-for="SlidesFile" class="form-control" type="file" accept=".pdf,application/pdf" />
-                <span asp-validation-for="SlidesFile" class="text-danger"></span>
-            </div>
-        }
-        <button type="submit" class="btn btn-primary">Speichern</button>
-        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-outline-secondary">Abbrechen</a>
-    </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
