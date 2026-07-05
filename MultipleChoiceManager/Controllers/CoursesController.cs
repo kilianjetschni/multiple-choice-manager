@@ -23,7 +23,8 @@ public class CoursesController(ApplicationDbContext context, IFileStorageService
                 Title = c.Title,
                 LecturerName = c.LecturerName,
                 Level = c.Level,
-                ChapterCount = c.Chapters.Count
+                ChapterCount = c.Chapters.Count,
+                ExamCount = c.Exams.Count
             })
             .ToListAsync();
 
