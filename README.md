@@ -1,9 +1,11 @@
 # Multiple Choice Manager
 
-Schlanke ASP.NET-Core-MVC-Anwendung zur Verwaltung von Lehrveranstaltungen,
-Kapiteln, Multiple-Choice-Fragen und Prüfungen. Kapitel können PDF-Dateien
-enthalten; auf dieser Grundlage lassen sich per KI Fragen generieren und
-bestehende Fragen prüfen.
+
+ASP.NET-Core-MVC-Anwendung zur Verwaltung von Lehrveranstaltungen,
+Kapiteln, Multiple-Choice-Fragen und Prüfungen. 
+
+Entwickelt im Rahmen eines Uni-Projekts im Modul Web Engineering an der JMU Würzburg 
+im SoSe 26.
 
 ## Funktionen
 
@@ -24,7 +26,7 @@ bestehende Fragen prüfen.
 - Bootstrap
 
 
-## Contributors
+## Beteiligte
 
 | Name | Matrikelnummer |
 | --- | --- |
