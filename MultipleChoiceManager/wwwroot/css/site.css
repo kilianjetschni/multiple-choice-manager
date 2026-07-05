@@ -1215,19 +1215,258 @@ code, kbd, samp { font-family: var(--mc-font-mono); }
 .mc-slides-link:hover { color: var(--mc-link-hover); text-decoration: underline; }
 
 /* =========================================================
-   Print (Prüfungs-Details)
+   Klausurbogen (Prüfungs-Details)
+   Nutzt die vorhandenen Tokens (--mc-ink, --mc-muted, --mc-border,
+   --mc-surface, --mc-font-serif/sans, --mc-eyebrow-Farbe).
+   ========================================================= */
+.mc-exam-sheet {
+    background-color: var(--mc-surface);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--mc-radius-card);
+    box-shadow: var(--mc-shadow-card);
+    padding: 2rem 2rem 2.5rem;
+}
+
+@media (min-width: 768px) {
+    .mc-exam-sheet { padding: 2.75rem 3rem 3rem; }
+}
+
+.mc-exam-sheet-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.mc-exam-sheet-header .mc-exam-title-block { min-width: 0; }
+
+.mc-exam-sheet-header .mc-exam-title {
+    font-family: var(--mc-font-serif);
+    font-weight: 600;
+    color: var(--mc-ink);
+    font-size: 2.25rem;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    margin: 0.15rem 0 0.5rem;
+}
+
+.mc-exam-sheet-header .mc-exam-lecturer {
+    font-family: var(--mc-font-sans);
+    color: var(--mc-muted);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.mc-exam-sheet-header .mc-exam-lecturer .mc-exam-lecturer-label {
+    color: var(--mc-eyebrow);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-right: 0.35rem;
+}
+
+.mc-exam-meta {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 2rem;
+    row-gap: 0.25rem;
+    margin: 0;
+    text-align: right;
+    align-content: start;
+}
+
+.mc-exam-meta dt {
+    font-family: var(--mc-font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mc-eyebrow);
+    margin: 0;
+}
+
+.mc-exam-meta dd {
+    font-family: var(--mc-font-serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--mc-ink);
+    margin: 0 0 0.35rem;
+}
+
+.mc-exam-fill-block {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+@media (min-width: 768px) {
+    .mc-exam-fill-block { flex-direction: row; gap: 2rem; }
+}
+
+.mc-fill-field {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.85rem;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.mc-fill-label {
+    font-family: var(--mc-font-sans);
+    font-weight: 600;
+    color: var(--mc-ink);
+    white-space: nowrap;
+    padding-bottom: 0.15rem;
+}
+
+.mc-fill-line {
+    flex-grow: 1;
+    height: 1.9rem;
+    border-bottom: 1px solid var(--mc-ink);
+}
+
+.mc-exam-divider {
+    margin: 2rem 0 2rem;
+    border: 0;
+    border-top: 1px solid var(--mc-border);
+    opacity: 1;
+}
+
+.mc-exam-questions { counter-reset: mc-exam-question; }
+
+.mc-exam-question {
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--mc-border);
+}
+
+.mc-exam-question:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.mc-exam-question-text {
+    font-family: var(--mc-font-serif);
+    font-weight: 600;
+    color: var(--mc-ink);
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin: 0 0 0.85rem;
+}
+
+.mc-exam-answers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-left: 0.25rem;
+}
+
+.mc-exam-answer {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.mc-exam-answer .mc-answer-letter {
+    /* Kreis-Buchstabe: hier bewusst neutraler, nicht in Success-Grün */
+    background-color: transparent;
+    border: 1px solid var(--mc-ink);
+    color: var(--mc-ink);
+    width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.85rem;
+}
+
+/* =========================================================
+   Print (Klausurbogen)
    ========================================================= */
 @media print {
-    body { background-color: #fff !important; color: #000; }
-    .app-shell, .app-shell-inner, .app-topbar, .sidebar, .sidebar-desktop { display: none !important; }
-    main, .app-content, .app-content-inner { padding: 0 !important; max-width: none !important; }
-    .card, .mc-question-card, .mc-soft-panel {
+    @page { size: A4; margin: 15mm 18mm; }
+
+    html, body {
+        background-color: #fff !important;
+        color: #000 !important;
+        font-size: 11pt;
+    }
+
+    /* App-Chrome ausblenden – aber nur die Navigations-/Overlay-Elemente,
+       NICHT die äußeren Layout-Wrapper (.app-shell, .app-shell-inner enthalten
+       den gesamten Seiteninhalt). */
+    .app-topbar,
+    .sidebar-desktop,
+    .offcanvas,
+    .modal-backdrop { display: none !important; }
+
+    /* Content-Bereich nimmt im Druck die volle Seitenbreite ein. */
+    .app-shell, .app-shell-inner {
+        display: block !important;
+        background: transparent !important;
+    }
+    .app-content { margin-left: 0 !important; width: 100% !important; }
+    main, .app-content, .app-content-inner {
+        padding: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    .breadcrumb, .btn, .mc-page-header, .mc-page-header-actions,
+    .mc-answer-badge, [class*="d-print-none"] { display: none !important; }
+
+    /* Der Kicker "Klausur" bleibt sichtbar (siehe mc-exam-print-kicker-Regel oben). */
+
+    a { color: #000 !important; text-decoration: none !important; }
+
+    /* Karten und Panels flach setzen. */
+    .card, .mc-question-card, .mc-soft-panel, .mc-exam-sheet {
         border: 0 !important;
         box-shadow: none !important;
         background-color: transparent !important;
+        padding: 0 !important;
     }
-    a { color: #000; text-decoration: none; }
-    .breadcrumb { display: none !important; }
-    .btn { display: none !important; }
+
+    /* Klausurbogen-Kopf im Druck: Serif-Größen etwas kompakter. */
+    .mc-exam-sheet-header .mc-exam-title { font-size: 22pt; margin-top: 0; }
+    .mc-exam-sheet-header .mc-exam-lecturer { font-size: 11pt; color: #000 !important; }
+    .mc-exam-sheet-header .mc-exam-lecturer .mc-exam-lecturer-label { color: #000 !important; }
+    .mc-exam-print-kicker {
+        font-family: var(--mc-font-sans);
+        font-size: 9pt;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #000 !important;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .mc-exam-meta dt { color: #000 !important; font-size: 8pt; }
+    .mc-exam-meta dd { color: #000 !important; font-size: 12pt; }
+
+    .mc-fill-line { border-bottom: 1px solid #000 !important; height: 22pt; }
+    .mc-fill-label { color: #000 !important; }
+
+    .mc-exam-divider { border-top: 1px solid #000 !important; margin: 8mm 0; }
+
+    /* Fragen sauber umbrechen. */
+    .mc-exam-question {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        border-bottom: 1px solid #000 !important;
+    }
+    .mc-exam-question:last-child { border-bottom: 0 !important; }
+    .mc-exam-question-text { color: #000 !important; }
+
+    .mc-exam-answer .mc-answer-letter {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background-color: transparent !important;
+    }
+
+    .mc-exam-answers { color: #000 !important; }
+
+    /* Bootstrap-Badge/Farb-Utility neutralisieren – nichts Buntes im Druck. */
     .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+    .text-body-secondary, .text-muted { color: #000 !important; }
 }
