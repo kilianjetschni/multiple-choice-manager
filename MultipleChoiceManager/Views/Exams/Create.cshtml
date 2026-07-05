@@ -10,49 +10,64 @@
     </ol>
 </nav>
 
-<h1 class="h2 mb-1">Neue Prüfung</h1>
-<p class="text-muted mb-4">Lehrveranstaltung: @Model.CourseTitle</p>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Prüfung</span>
+        <h1>Neue Prüfung</h1>
+        <p class="mc-page-subtitle">Lehrveranstaltung: @Model.CourseTitle</p>
+    </div>
+</div>
 
-<div class="col-lg-8">
-    @if (Model.ShowAvailabilityWarning)
-    {
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            Es sind in dieser Veranstaltung nur <strong>@Model.AvailableQuestionCount</strong> Fragen
-            hinterlegt, Sie möchten aber <strong>@Model.QuestionCount</strong> Fragen generieren.
-            Möchten Sie trotzdem mit @Model.AvailableQuestionCount Fragen fortfahren?
-        </div>
-    }
-
-    <form asp-action="Create" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <input type="hidden" asp-for="CourseId" />
-
-        <div class="mb-3">
-            <label asp-for="Date" class="form-label"></label>
-            <input asp-for="Date" class="form-control" />
-            <span asp-validation-for="Date" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="QuestionCount" class="form-label"></label>
-            <input asp-for="QuestionCount" class="form-control" type="number" min="1" placeholder="z. B. 10" />
-            <div class="form-text">
-                Die Fragen werden zufällig und ohne Duplikate aus allen Kapiteln der Veranstaltung
-                ausgewählt (@Model.AvailableQuestionCount verfügbar).
-            </div>
-            <span asp-validation-for="QuestionCount" class="text-danger"></span>
-        </div>
-
+<div class="row">
+    <div class="col-lg-8 col-xl-7">
         @if (Model.ShowAvailabilityWarning)
         {
-            <button type="submit" name="ProceedWithAvailable" value="true" class="btn btn-warning">
-                Mit @Model.AvailableQuestionCount Fragen fortfahren
-            </button>
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Es sind in dieser Veranstaltung nur <strong>@Model.AvailableQuestionCount</strong> Fragen
+                hinterlegt, Sie möchten aber <strong>@Model.QuestionCount</strong> Fragen generieren.
+                Möchten Sie trotzdem mit @Model.AvailableQuestionCount Fragen fortfahren?
+            </div>
         }
-        <button type="submit" class="btn btn-primary">Erstellen</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Abbrechen</a>
-    </form>
+
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="CourseId" />
+
+                    <div class="mb-3">
+                        <label asp-for="Date" class="form-label"></label>
+                        <input asp-for="Date" class="form-control" />
+                        <span asp-validation-for="Date" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="QuestionCount" class="form-label"></label>
+                        <input asp-for="QuestionCount" class="form-control" type="number" min="1" placeholder="z. B. 10" />
+                        <div class="form-text">
+                            Die Fragen werden zufällig und ohne Duplikate aus allen Kapiteln der Veranstaltung
+                            ausgewählt (@Model.AvailableQuestionCount verfügbar).
+                        </div>
+                        <span asp-validation-for="QuestionCount" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.ShowAvailabilityWarning)
+                        {
+                            <button type="submit" name="ProceedWithAvailable" value="true" class="btn btn-warning">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Mit @Model.AvailableQuestionCount Fragen fortfahren
+                            </button>
+                        }
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Erstellen
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

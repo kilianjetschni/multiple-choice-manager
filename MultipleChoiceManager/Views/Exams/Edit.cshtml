@@ -11,89 +11,128 @@
     </ol>
 </nav>
 
-<h1 class="h2 mb-1">Prüfung bearbeiten</h1>
-<p class="text-muted mb-4">Lehrveranstaltung: @Model.CourseTitle</p>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Prüfung</span>
+        <h1>Prüfung bearbeiten</h1>
+        <p class="mc-page-subtitle">Lehrveranstaltung: @Model.CourseTitle</p>
+    </div>
+</div>
 
 <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="CourseId" />
 
-    <div class="mb-4 col-lg-4">
-        <label asp-for="Date" class="form-label"></label>
-        <input asp-for="Date" class="form-control" />
-        <span asp-validation-for="Date" class="text-danger"></span>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4 col-lg-3">
+                    <label asp-for="Date" class="form-label"></label>
+                    <input asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-7">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="h5 mb-0">Ausgewählte Fragen</h2>
-                <span class="badge text-bg-primary" id="selectedQuestionCount">@Model.SelectedQuestions.Count</span>
-            </div>
-            <span asp-validation-for="SelectedQuestionIds" class="text-danger"></span>
-            <ul class="list-group" id="selectedQuestions">
-                @foreach (var question in Model.SelectedQuestions)
-                {
-                    <li class="list-group-item js-selected-question" draggable="true"
-                        data-question-id="@question.Id"
-                        data-question-text="@question.Text"
-                        data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
-                        <input type="hidden" name="SelectedQuestionIds" value="@question.Id" />
-                        <div class="d-flex align-items-start gap-2">
-                            <span class="text-muted" title="Reihenfolge ändern" style="cursor: grab;">
-                                <i class="bi bi-grip-vertical"></i>
-                            </span>
-                            <div class="flex-grow-1">
-                                <div class="small text-muted">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
-                                <div>@question.Text</div>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger js-remove-question"
-                                    title="Frage entfernen">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="mc-eyebrow d-block mb-1">Auswahl</span>
+                            <h2 class="h5 mb-0">Ausgewählte Fragen</h2>
                         </div>
-                    </li>
-                }
-            </ul>
-            <p class="text-muted mt-2 @(Model.SelectedQuestions.Count == 0 ? null : "d-none")" id="emptySelectedMessage">
-                Noch keine Fragen ausgewählt.
-            </p>
+                        <span class="mc-stat-chip" id="selectedQuestionCount-wrap">
+                            <i class="bi bi-list-check"></i>
+                            <span id="selectedQuestionCount">@Model.SelectedQuestions.Count</span>
+                        </span>
+                    </div>
+                    <span asp-validation-for="SelectedQuestionIds" class="text-danger small d-block mt-2"></span>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="selectedQuestions">
+                        @foreach (var question in Model.SelectedQuestions)
+                        {
+                            <li class="list-group-item js-selected-question" draggable="true"
+                                data-question-id="@question.Id"
+                                data-question-text="@question.Text"
+                                data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
+                                <input type="hidden" name="SelectedQuestionIds" value="@question.Id" />
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="text-body-secondary" title="Reihenfolge ändern" style="cursor: grab;">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </span>
+                                    <div class="flex-grow-1">
+                                        <div class="mc-eyebrow mb-1">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
+                                        <div>@question.Text</div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-icon js-remove-question"
+                                            title="Frage entfernen" aria-label="Frage entfernen">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                    <p class="text-body-secondary mt-2 mb-0 @(Model.SelectedQuestions.Count == 0 ? null : "d-none")"
+                       id="emptySelectedMessage">
+                        Noch keine Fragen ausgewählt.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-5">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="h5 mb-0">Verfügbare Fragen</h2>
-                <span class="badge text-bg-secondary" id="availableQuestionCount">@Model.AvailableQuestions.Count</span>
-            </div>
-            <ul class="list-group" id="availableQuestions">
-                @foreach (var question in Model.AvailableQuestions)
-                {
-                    <li class="list-group-item js-available-question"
-                        data-question-id="@question.Id"
-                        data-question-text="@question.Text"
-                        data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
-                        <div class="d-flex align-items-start gap-2">
-                            <div class="flex-grow-1">
-                                <div class="small text-muted">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
-                                <div>@question.Text</div>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary js-add-question"
-                                    title="Frage hinzufügen">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="mc-eyebrow d-block mb-1">Katalog</span>
+                            <h2 class="h5 mb-0">Verfügbare Fragen</h2>
                         </div>
-                    </li>
-                }
-            </ul>
-            <p class="text-muted mt-2 @(Model.AvailableQuestions.Count == 0 ? null : "d-none")" id="emptyAvailableMessage">
-                Keine weiteren Fragen verfügbar.
-            </p>
+                        <span class="mc-stat-chip">
+                            <i class="bi bi-collection"></i>
+                            <span id="availableQuestionCount">@Model.AvailableQuestions.Count</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="availableQuestions">
+                        @foreach (var question in Model.AvailableQuestions)
+                        {
+                            <li class="list-group-item js-available-question"
+                                data-question-id="@question.Id"
+                                data-question-text="@question.Text"
+                                data-chapter-label="Kapitel @question.ChapterNumber: @question.ChapterTitle">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div class="flex-grow-1">
+                                        <div class="mc-eyebrow mb-1">Kapitel @question.ChapterNumber: @question.ChapterTitle</div>
+                                        <div>@question.Text</div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary btn-icon js-add-question"
+                                            title="Frage hinzufügen" aria-label="Frage hinzufügen">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                    <p class="text-body-secondary mt-2 mb-0 @(Model.AvailableQuestions.Count == 0 ? null : "d-none")"
+                       id="emptyAvailableMessage">
+                        Keine weiteren Fragen verfügbar.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">Speichern</button>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Speichern
+        </button>
         <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Abbrechen</a>
     </div>
 </form>
@@ -137,7 +176,7 @@
                 row.className = "d-flex align-items-start gap-2";
 
                 const handle = document.createElement("span");
-                handle.className = "text-muted";
+                handle.className = "text-body-secondary";
                 handle.title = "Reihenfolge ändern";
                 handle.style.cursor = "grab";
                 handle.innerHTML = '<i class="bi bi-grip-vertical"></i>';
@@ -146,7 +185,7 @@
                 body.className = "flex-grow-1";
 
                 const chapter = document.createElement("div");
-                chapter.className = "small text-muted";
+                chapter.className = "mc-eyebrow mb-1";
                 chapter.textContent = sourceItem.dataset.chapterLabel;
 
                 const text = document.createElement("div");
@@ -154,8 +193,9 @@
 
                 const removeButton = document.createElement("button");
                 removeButton.type = "button";
-                removeButton.className = "btn btn-sm btn-outline-danger js-remove-question";
+                removeButton.className = "btn btn-sm btn-outline-danger btn-icon js-remove-question";
                 removeButton.title = "Frage entfernen";
+                removeButton.setAttribute("aria-label", "Frage entfernen");
                 removeButton.innerHTML = '<i class="bi bi-x-lg"></i>';
 
                 body.append(chapter, text);

@@ -3,105 +3,138 @@
     ViewData["Title"] = "Prüfungen";
 }
 
-<h1 class="h2 mb-4">Prüfungen</h1>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Klausuren</span>
+        <h1>Prüfungen</h1>
+        <p class="mc-page-subtitle">Prüfungen aus den Fragenkatalogen der Lehrveranstaltungen zusammenstellen.</p>
+    </div>
+</div>
 
 @if (Model.Count == 0)
 {
-    <div class="alert alert-info">
-        Noch keine Lehrveranstaltungen vorhanden. Bitte zuerst eine Lehrveranstaltung anlegen.
+    <div class="mc-empty-state">
+        <div class="mc-empty-icon">
+            <i class="bi bi-journal-check"></i>
+        </div>
+        <h2 class="h4">Noch keine Lehrveranstaltungen</h2>
+        <p>Legen Sie zuerst eine Lehrveranstaltung an, um Prüfungen erstellen zu können.</p>
+        <a asp-controller="Courses" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Neue Lehrveranstaltung
+        </a>
     </div>
 }
 
-@foreach (var course in Model)
-{
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="h5 mb-0">@course.CourseTitle</h2>
-                <small class="text-muted">
-                    @course.AvailableQuestionCount Fragen aus allen Kapiteln hinterlegt
-                </small>
-            </div>
-            @if (course.AvailableQuestionCount == 0)
-            {
-                <button type="button" class="btn btn-primary" disabled
-                        title="In dieser Veranstaltung sind noch keine Fragen hinterlegt.">
-                    <i class="bi bi-plus-lg me-1"></i>Neue Prüfung erstellen
-                </button>
-            }
-            else
-            {
-                <a asp-action="Create" asp-route-courseId="@course.CourseId" class="btn btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i>Neue Prüfung erstellen
-                </a>
-            }
-        </div>
-        <div class="card-body">
-            @if (course.Exams.Count == 0)
-            {
-                <p class="text-muted mb-0">Noch keine Prüfungen vorhanden.</p>
-            }
-            else
-            {
-                <table class="table table-striped align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Fragen</th>
-                            <th class="text-end">Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var exam in course.Exams)
+<div class="d-flex flex-column gap-4">
+    @foreach (var course in Model)
+    {
+        <section class="card" id="course-@course.CourseId">
+            <div class="card-header">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div>
+                        <span class="mc-eyebrow d-block mb-1">Lehrveranstaltung</span>
+                        <h2 class="h4 mb-1">@course.CourseTitle</h2>
+                        <p class="text-body-secondary mb-0 small">
+                            @course.AvailableQuestionCount Fragen aus allen Kapiteln hinterlegt
+                        </p>
+                    </div>
+                    <div>
+                        @if (course.AvailableQuestionCount == 0)
                         {
-                            <tr>
-                                <td>@exam.Date.ToString("dd.MM.yyyy")</td>
-                                <td>@exam.QuestionCount</td>
-                                <td class="text-end">
-                                    <a asp-action="Details" asp-route-id="@exam.Id"
-                                       class="btn btn-sm btn-outline-primary" title="Einsehen">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a asp-action="Edit" asp-route-id="@exam.Id"
-                                       class="btn btn-sm btn-outline-secondary" title="Bearbeiten">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
-                                            data-bs-toggle="modal" data-bs-target="#deleteModal-@exam.Id">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            <button type="button" class="btn btn-primary" disabled
+                                    title="In dieser Veranstaltung sind noch keine Fragen hinterlegt.">
+                                <i class="bi bi-plus-lg me-1"></i>Neue Prüfung erstellen
+                            </button>
                         }
-                    </tbody>
-                </table>
-            }
-        </div>
-    </div>
-}
+                        else
+                        {
+                            <a asp-action="Create" asp-route-courseId="@course.CourseId" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>Neue Prüfung erstellen
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if (course.Exams.Count == 0)
+                {
+                    <p class="text-body-secondary mb-0 p-4">Noch keine Prüfungen vorhanden.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Fragen</th>
+                                    <th class="text-end">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var exam in course.Exams)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold text-body-emphasis">@exam.Date.ToString("dd.MM.yyyy")</td>
+                                        <td>
+                                            <span class="mc-stat-chip">
+                                                <i class="bi bi-list-check"></i>@exam.QuestionCount
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-2">
+                                                <a asp-action="Details" asp-route-id="@exam.Id"
+                                                   class="btn btn-sm btn-outline-primary btn-icon"
+                                                   title="Einsehen" aria-label="Einsehen">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@exam.Id"
+                                                   class="btn btn-sm btn-outline-secondary btn-icon"
+                                                   title="Bearbeiten" aria-label="Bearbeiten">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
+                                                        title="Löschen" aria-label="Löschen"
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal-@exam.Id">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+</div>
 
 @foreach (var course in Model)
 {
     foreach (var exam in course.Exams)
     {
         <div class="modal fade" id="deleteModal-@exam.Id" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Prüfung löschen</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
-                        <p>
+                        <p class="mb-3">
                             Soll die Prüfung vom <strong>@exam.Date.ToString("dd.MM.yyyy")</strong>
                             (@course.CourseTitle) wirklich gelöscht werden?
                         </p>
-                        <p class="text-muted mb-0">Die Fragen selbst bleiben erhalten.</p>
+                        <p class="text-body-secondary mb-0">Die Fragen selbst bleiben erhalten.</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <form asp-action="Delete" asp-route-id="@exam.Id" method="post">
-                            <button type="submit" class="btn btn-danger">Löschen</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <form asp-action="Delete" asp-route-id="@exam.Id" method="post" class="m-0">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Löschen
+                            </button>
                         </form>
                     </div>
                 </div>
