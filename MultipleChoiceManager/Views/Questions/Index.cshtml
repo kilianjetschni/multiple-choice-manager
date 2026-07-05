@@ -21,21 +21,6 @@
     }
 }
 
-<style>
-    .ai-busy-overlay {
-        z-index: 2000;
-        backdrop-filter: blur(2px);
-    }
-
-    .ai-review-panel {
-        border: 1px solid var(--bs-border-color);
-        border-radius: .5rem;
-        padding: 1rem;
-        height: 100%;
-        background: var(--bs-body-bg);
-    }
-</style>
-
 <div id="aiPageContent">
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -47,10 +32,14 @@
     </ol>
 </nav>
 
-<div class="d-flex justify-content-between align-items-center gap-2 mb-1">
-    <h1 class="h2 mb-0">Fragen</h1>
-    <div class="d-flex gap-2">
-        <form asp-action="Generate" method="post"
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Fragenkatalog</span>
+        <h1>Fragen</h1>
+        <p class="mc-page-subtitle">Kapitel @Model.ChapterNumber: @Model.Title — @Model.Course!.Title</p>
+    </div>
+    <div class="mc-page-header-actions">
+        <form asp-action="Generate" method="post" class="m-0"
               data-ai-busy-form
               data-ai-busy-title="KI erstellt einen Fragenvorschlag"
               data-ai-busy-message="Die PDF wird analysiert. Währenddessen ist die Oberfläche gesperrt.">
@@ -64,48 +53,65 @@
         </a>
     </div>
 </div>
-<p class="text-muted mb-4">Kapitel @Model.ChapterNumber: @Model.Title — @Model.Course!.Title</p>
 
 @if (TempData["AiSuccess"] is string successMessage)
 {
-    <div class="alert alert-success" role="alert">@successMessage</div>
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle me-1"></i>@successMessage
+    </div>
 }
 
 @if (TempData["AiError"] is string errorMessage)
 {
-    <div class="alert alert-danger" role="alert">@errorMessage</div>
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-1"></i>@errorMessage
+    </div>
 }
 
 @if (string.IsNullOrWhiteSpace(Model.SlidesBlobUrl))
 {
     <div class="alert alert-secondary" role="alert">
+        <i class="bi bi-info-circle me-1"></i>
         Für dieses Kapitel ist keine PDF-Datei hinterlegt. Die KI-Generierung ist deshalb deaktiviert.
     </div>
 }
 
 @if (Model.Questions.Count == 0)
 {
-    <div class="alert alert-info">Noch keine Fragen vorhanden.</div>
+    <div class="mc-empty-state">
+        <div class="mc-empty-icon">
+            <i class="bi bi-patch-question"></i>
+        </div>
+        <h2 class="h4">Noch keine Fragen</h2>
+        <p>Erfassen Sie eine neue Frage oder lassen Sie mit KI eine aus den Folien generieren.</p>
+        <a asp-action="Create" asp-route-chapterId="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Neue Frage
+        </a>
+    </div>
 }
 else
 {
     @foreach (var question in Model.Questions)
     {
-        <div class="list-group mb-4">
-            <div class="list-group-item list-group-item-secondary">
-                <strong>@question.Text</strong>
+        <div class="mc-question-card">
+            <div class="mc-question-header">
+                <p class="mc-question-text">@question.Text</p>
             </div>
-            @foreach (var option in question.AnswerOptions)
+            @for (var i = 0; i < question.AnswerOptions.Count; i++)
             {
-                <div class="list-group-item @(option.IsCorrect ? "list-group-item-success" : "")">
+                var option = question.AnswerOptions[i];
+                <div class="mc-answer-row @(option.IsCorrect ? "is-correct" : null)">
+                    <span class="mc-answer-letter">@((char)('A' + i))</span>
+                    <span class="mc-answer-text">@option.Text</span>
                     @if (option.IsCorrect)
                     {
-                        <i class="bi bi-check-circle-fill text-success me-2" title="Richtige Antwort"></i>
+                        <span class="mc-answer-badge">
+                            <i class="bi bi-check-lg"></i>Richtig
+                        </span>
                     }
-                    @option.Text
                 </div>
             }
-            <div class="list-group-item d-flex justify-content-end gap-2">
+            <div class="mc-question-actions">
                 @if (!string.IsNullOrWhiteSpace(question.AiReviewResultJson))
                 {
                     <button type="button" class="btn btn-sm btn-outline-success"
@@ -113,7 +119,7 @@ else
                         <i class="bi bi-eye me-1"></i>Prüfung anzeigen
                     </button>
                 }
-                <form asp-action="Review" asp-route-id="@question.Id" method="post"
+                <form asp-action="Review" asp-route-id="@question.Id" method="post" class="m-0"
                       data-ai-busy-form
                       data-ai-busy-title="KI prüft die Frage"
                       data-ai-busy-message="Frage und Antwortoptionen werden geprüft. Währenddessen ist die Oberfläche gesperrt.">
@@ -135,23 +141,25 @@ else
     @foreach (var question in Model.Questions)
     {
         <div class="modal fade" id="deleteModal-@question.Id" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Frage löschen</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Soll die Frage <strong>@question.Text</strong> wirklich gelöscht werden?</p>
-                        <p class="text-danger mb-0">
-                            Alle Antwortoptionen werden mitgelöscht; die Frage wird auch aus
-                            gespeicherten Prüfungen entfernt.
-                        </p>
+                        <p class="mb-3">Soll die Frage <strong>@question.Text</strong> wirklich gelöscht werden?</p>
+                        <div class="alert alert-danger mb-0">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Alle Antwortoptionen werden mitgelöscht; die Frage wird auch aus gespeicherten Prüfungen entfernt.
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <form asp-action="Delete" asp-route-id="@question.Id" method="post">
-                            <button type="submit" class="btn btn-danger">Löschen</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <form asp-action="Delete" asp-route-id="@question.Id" method="post" class="m-0">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Löschen
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -178,18 +186,28 @@ else
         }
 
         <div class="modal fade" id="aiReviewModal-@question.Id" tabindex="-1" aria-labelledby="aiReviewModalLabel-@question.Id" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <div>
-                            <p class="fw-semibold mb-1 @(savedReviewResult.HasCriticalIssues ? "text-warning" : "text-success")">
-                                <i class="bi @(savedReviewResult.HasCriticalIssues ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill") me-1"></i>
-                                @savedReviewResult.OverallVerdict
-                            </p>
-                            <h2 class="modal-title fs-5" id="aiReviewModalLabel-@question.Id">KI-Prüfung der Frage</h2>
+                            <span class="mc-eyebrow d-block mb-1">KI-Prüfung</span>
+                            <h2 class="modal-title fs-5" id="aiReviewModalLabel-@question.Id">
+                                @if (savedReviewResult.HasCriticalIssues)
+                                {
+                                    <span class="text-warning">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>@savedReviewResult.OverallVerdict
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>@savedReviewResult.OverallVerdict
+                                    </span>
+                                }
+                            </h2>
                             @if (question.AiReviewedAtUtc is not null)
                             {
-                                <p class="text-muted small mb-0">
+                                <p class="text-muted small mb-0 mt-1">
                                     Geprüft am @question.AiReviewedAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") Uhr
                                 </p>
                             }
@@ -197,12 +215,12 @@ else
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="lead fs-6">@savedReviewResult.Summary</p>
+                        <p class="lead fs-6 mb-4">@savedReviewResult.Summary</p>
 
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <section class="ai-review-panel">
-                                    <h3 class="h6 text-success">
+                                    <h3 class="text-success">
                                         <i class="bi bi-check2-circle me-1"></i>Stärken
                                     </h3>
                                     @if (savedReviewResult.Strengths.Count == 0)
@@ -222,7 +240,7 @@ else
                             </div>
                             <div class="col-md-4">
                                 <section class="ai-review-panel">
-                                    <h3 class="h6 text-warning">
+                                    <h3 class="text-warning">
                                         <i class="bi bi-exclamation-triangle me-1"></i>Auffälligkeiten
                                     </h3>
                                     @if (savedReviewResult.Issues.Count == 0)
@@ -242,7 +260,7 @@ else
                             </div>
                             <div class="col-md-4">
                                 <section class="ai-review-panel">
-                                    <h3 class="h6 text-primary">
+                                    <h3 class="text-primary">
                                         <i class="bi bi-tools me-1"></i>Vorschläge
                                     </h3>
                                     @if (savedReviewResult.Suggestions.Count == 0)
@@ -280,14 +298,14 @@ else
         ?? questionProposal.Options.FindIndex(option => option.IsCorrect);
 
     <div class="modal fade" id="aiProposalModal" tabindex="-1" aria-labelledby="aiProposalModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
             <form asp-action="ConfirmGenerated" method="post" class="modal-content">
                 <input type="hidden" name="ChapterId" value="@questionProposal.ChapterId" />
                 <div class="modal-header">
                     <div>
-                        <p class="text-success fw-semibold mb-1">
+                        <span class="mc-eyebrow d-block mb-1">
                             <i class="bi bi-stars me-1"></i>KI-Vorschlag
-                        </p>
+                        </span>
                         <h2 class="modal-title fs-5" id="aiProposalModalLabel">Neue Frage prüfen und bearbeiten</h2>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
@@ -309,40 +327,35 @@ else
 
                     <fieldset>
                         <legend class="form-label">Antwortoptionen</legend>
-                        <div class="list-group">
+                        <div class="d-flex flex-column gap-2">
                             @for (var i = 0; i < questionProposal.Options.Count; i++)
                             {
                                 var option = questionProposal.Options[i];
-                                <div class="list-group-item">
-                                    <div class="d-flex gap-3 align-items-start">
-                                        <div class="form-check pt-2">
-                                            <input id="aiCorrectOption-@i"
-                                                   class="form-check-input"
-                                                   type="radio"
-                                                   name="CorrectOptionIndex"
-                                                   value="@i"
-                                                   required
-                                                   checked="@(selectedCorrectOptionIndex == i)" />
-                                            <label class="form-check-label visually-hidden" for="aiCorrectOption-@i">
-                                                Antwort @(i + 1) als richtig markieren
-                                            </label>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <label class="form-label small text-muted" for="aiOptionText-@i">
-                                                Antwort @(i + 1)
-                                            </label>
-                                            <input id="aiOptionText-@i"
-                                                   type="text"
-                                                   name="Options[@i].Text"
-                                                   value="@option.Text"
-                                                   class="form-control"
-                                                   maxlength="500"
-                                                   required />
-                                        </div>
+                                <div class="mc-answer-editor">
+                                    <span class="mc-answer-letter">@((char)('A' + i))</span>
+                                    <div class="form-check m-0 mc-answer-editor-radio">
+                                        <input id="aiCorrectOption-@i"
+                                               class="form-check-input"
+                                               type="radio"
+                                               name="CorrectOptionIndex"
+                                               value="@i"
+                                               required
+                                               checked="@(selectedCorrectOptionIndex == i)" />
+                                        <label class="form-check-label visually-hidden" for="aiCorrectOption-@i">
+                                            Antwort @(i + 1) als richtig markieren
+                                        </label>
                                     </div>
+                                    <input type="text"
+                                           name="Options[@i].Text"
+                                           value="@option.Text"
+                                           class="form-control"
+                                           maxlength="500"
+                                           aria-label="Text der Antwortoption @(i + 1)"
+                                           required />
                                 </div>
                             }
                         </div>
+                        <div class="form-text mt-2">Radio-Button auswählen, um die richtige Antwort zu markieren.</div>
                     </fieldset>
                 </div>
                 <div class="modal-footer">
@@ -359,13 +372,13 @@ else
 </div>
 
 <div id="aiBusyOverlay"
-     class="ai-busy-overlay position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-none align-items-center justify-content-center text-white"
+     class="ai-busy-overlay position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center text-white"
      role="status"
      aria-live="polite"
      aria-modal="true">
     <div class="text-center px-4">
         <div class="spinner-border mb-3" aria-hidden="true"></div>
-        <h2 id="aiBusyTitle" class="h5">KI arbeitet</h2>
+        <h2 id="aiBusyTitle" class="h5 text-white">KI arbeitet</h2>
         <p id="aiBusyMessage" class="mb-0">Bitte warten. Die Oberfläche ist währenddessen gesperrt.</p>
     </div>
 </div>

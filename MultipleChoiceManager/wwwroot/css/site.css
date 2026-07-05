@@ -1045,6 +1045,47 @@ code, kbd, samp { font-family: var(--mc-font-mono); }
     border-top: 1px solid var(--mc-border);
 }
 
+/* Antwort-Editor-Zeile (Formulare/Proposal-Modal) */
+.mc-answer-editor {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--mc-surface);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--mc-radius-list);
+}
+
+.mc-answer-editor:focus-within {
+    border-color: var(--mc-input-focus-border);
+    box-shadow: 0 0 0 0.2rem var(--mc-input-focus-ring);
+}
+
+.mc-answer-editor .mc-answer-letter {
+    flex-shrink: 0;
+}
+
+.mc-answer-editor .mc-answer-editor-radio {
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+    margin: 0;
+}
+
+.mc-answer-editor .mc-answer-editor-radio .form-check-input {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.mc-answer-editor > .form-control {
+    border: 0;
+    background-color: transparent;
+    padding: 0.35rem 0.25rem;
+    box-shadow: none;
+}
+
+.mc-answer-editor > .form-control:focus { box-shadow: none; }
+
 /* AI Review Panel innerhalb Modal */
 .ai-review-panel {
     border: 1px solid var(--mc-border);
