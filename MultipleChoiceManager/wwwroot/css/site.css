@@ -73,8 +73,8 @@
     --mc-shadow-list: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     --mc-shadow-drawer: 0 12px 40px rgba(0, 0, 0, 0.35);
 
-    /* Layout */
-    --mc-sidebar-width: 264px;
+    /* Layout – Sidebar-Breite und Content-Offset teilen sich einen Wert. */
+    --mc-sidebar-width: 240px;
 
     /* -------- Bootstrap-Variablen überschreiben -------- */
     --bs-primary: var(--mc-primary);
@@ -214,7 +214,6 @@ code, kbd, samp { font-family: var(--mc-font-mono); }
 
 /* Sidebar */
 .sidebar {
-    width: 100%;
     background-color: var(--mc-sidebar-bg);
     color: var(--mc-sidebar-text);
     padding: 1.25rem 0.85rem;
@@ -291,29 +290,10 @@ code, kbd, samp { font-family: var(--mc-font-mono); }
     opacity: 0.9;
 }
 
-/* Desktop-Layout ab lg */
-@media (min-width: 992px) {
-    .app-shell-inner {
-        display: flex;
-        min-height: 100vh;
-    }
-
-    .app-shell .sidebar-desktop {
-        width: var(--mc-sidebar-width);
-        flex-shrink: 0;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-    }
-
-    .app-topbar {
-        display: none !important;
-    }
-}
-
 .app-content {
-    flex-grow: 1;
     min-width: 0;
+    /* Auf < lg keine Sidebar → kein Offset. */
+    margin-left: 0;
 }
 
 .app-content-inner {
@@ -324,6 +304,28 @@ code, kbd, samp { font-family: var(--mc-font-mono); }
 
 @media (min-width: 768px) {
     .app-content-inner { padding: 2.5rem 2rem 3.5rem; }
+}
+
+/* Desktop-Layout ab lg: Sidebar fest links, Content bündig daneben. */
+@media (min-width: 992px) {
+    .app-shell .sidebar-desktop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--mc-sidebar-width);
+        overflow-y: auto;
+        z-index: 1030;
+    }
+
+    /* Der Content-Bereich beginnt genau dort, wo die Sidebar endet. */
+    .app-content {
+        margin-left: var(--mc-sidebar-width);
+    }
+
+    .app-topbar {
+        display: none !important;
+    }
 }
 
 /* =========================================================
