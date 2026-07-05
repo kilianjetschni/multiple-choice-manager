@@ -1,31 +1,34 @@
 @model QuestionFormViewModel
 
-<div class="mb-3">
+<div class="mb-4">
     <label asp-for="Text" class="form-label"></label>
     <textarea asp-for="Text" class="form-control" rows="3"></textarea>
-    <span asp-validation-for="Text" class="text-danger"></span>
+    <span asp-validation-for="Text" class="text-danger small"></span>
 </div>
 
-<fieldset class="mb-3">
-    <legend class="form-label fs-6 fw-semibold">
-        Antwortoptionen <span class="text-muted fw-normal">(genau eine als richtig markieren)</span>
+<fieldset class="mb-4">
+    <legend class="form-label">
+        Antwortoptionen
+        <span class="text-body-secondary fw-normal">(genau eine als richtig markieren)</span>
     </legend>
-    @for (var i = 0; i < Model.Options.Count; i++)
-    {
-        <div class="mb-2">
-            <div class="input-group">
-                <div class="input-group-text">
-                    <input type="radio" class="form-check-input mt-0" asp-for="CorrectOptionIndex"
+    <div class="d-flex flex-column gap-2">
+        @for (var i = 0; i < Model.Options.Count; i++)
+        {
+            <div class="mc-answer-editor">
+                <span class="mc-answer-letter">@((char)('A' + i))</span>
+                <div class="form-check m-0 mc-answer-editor-radio">
+                    <input type="radio" class="form-check-input" asp-for="CorrectOptionIndex"
                            value="@i" id="CorrectOptionIndex-@i"
                            aria-label="Antwortoption @(i + 1) als richtig markieren"
                            title="Als richtige Antwort markieren" />
                 </div>
                 <input type="hidden" asp-for="Options[i].Id" />
-                <input asp-for="Options[i].Text" class="form-control" placeholder="Antwortoption @(i + 1)"
+                <input asp-for="Options[i].Text" class="form-control"
+                       placeholder="Antwortoption @(i + 1)"
                        aria-label="Text der Antwortoption @(i + 1)" />
             </div>
-            <span asp-validation-for="Options[i].Text" class="text-danger"></span>
-        </div>
-    }
-    <span asp-validation-for="CorrectOptionIndex" class="text-danger"></span>
+            <span asp-validation-for="Options[i].Text" class="text-danger small"></span>
+        }
+    </div>
+    <span asp-validation-for="CorrectOptionIndex" class="text-danger small d-block mt-2"></span>
 </fieldset>

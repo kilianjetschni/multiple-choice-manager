@@ -3,17 +3,42 @@
     ViewData["Title"] = "Neue Frage";
 }
 
-<h1 class="h2 mb-1">Neue Frage</h1>
-<p class="text-muted mb-4">Kapitel: @Model.ChapterTitle — @Model.CourseTitle</p>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Courses" asp-action="Index">Lehrveranstaltungen</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Questions" asp-action="Index" asp-route-chapterId="@Model.ChapterId">@Model.ChapterTitle</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Neue Frage</li>
+    </ol>
+</nav>
 
-<div class="col-lg-8">
-    <form asp-action="Create" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <input type="hidden" asp-for="ChapterId" />
-        <partial name="_QuestionFormFields" />
-        <button type="submit" class="btn btn-primary">Speichern</button>
-        <a asp-action="Index" asp-route-chapterId="@Model.ChapterId" class="btn btn-outline-secondary">Abbrechen</a>
-    </form>
+<div class="mc-page-header">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Frage</span>
+        <h1>Neue Frage</h1>
+        <p class="mc-page-subtitle">Kapitel: @Model.ChapterTitle — @Model.CourseTitle</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9 col-xl-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="ChapterId" />
+                    <partial name="_QuestionFormFields" />
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Speichern
+                        </button>
+                        <a asp-action="Index" asp-route-chapterId="@Model.ChapterId" class="btn btn-outline-secondary">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

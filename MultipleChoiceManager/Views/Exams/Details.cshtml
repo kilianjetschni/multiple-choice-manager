@@ -12,9 +12,13 @@
     </ol>
 </nav>
 
-<div class="d-flex justify-content-between align-items-center mb-1">
-    <h1 class="h2 mb-0">Prüfung: @Model.Course!.Title</h1>
-    <div class="d-flex gap-2 d-print-none">
+<div class="mc-page-header d-print-none">
+    <div>
+        <span class="mc-eyebrow d-block mb-2">Prüfung</span>
+        <h1>@Model.Course!.Title</h1>
+        <p class="mc-page-subtitle">Datum: @Model.Date.ToString("dd.MM.yyyy") — @Model.Questions.Count Fragen</p>
+    </div>
+    <div class="mc-page-header-actions">
         <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
             <i class="bi bi-pencil me-1"></i>Bearbeiten
         </a>
@@ -23,36 +27,77 @@
         </button>
     </div>
 </div>
-<p class="text-muted mb-1">Datum: @Model.Date.ToString("dd.MM.yyyy") — @Model.Questions.Count Fragen</p>
-<p class="text-muted d-print-none">
-    <i class="bi bi-check-circle-fill text-success me-1"></i>
-    markiert die richtige Antwort; beim Drucken wird die Markierung ausgeblendet.
+
+<p class="text-body-secondary d-print-none mb-4">
+    <i class="bi bi-info-circle me-1"></i>
+    Der Ausdruck zeigt den fertigen Klausurbogen ohne Markierung der richtigen Antworten.
 </p>
 
-<hr class="mb-4" />
-
-@{
-    var questionNumber = 1;
-}
-@foreach (var question in Model.Questions)
-{
-    <div class="mb-4">
-        <p class="fw-semibold mb-2">@(questionNumber++). @question.Text</p>
-        @for (var i = 0; i < question.AnswerOptions.Count; i++)
-        {
-            var option = question.AnswerOptions[i];
-            <p class="ms-3 mb-1">
-                @((char)('A' + i))) @option.Text
-                @if (option.IsCorrect)
-                {
-                    <i class="bi bi-check-circle-fill text-success ms-1 d-print-none"
-                       title="Richtige Antwort"></i>
-                }
+<article class="mc-exam-sheet">
+    <header class="mc-exam-sheet-header">
+        <div class="mc-exam-title-block">
+            <span class="mc-eyebrow mc-exam-print-kicker">Klausur</span>
+            <h1 class="mc-exam-title">@Model.Course!.Title</h1>
+            <p class="mc-exam-lecturer">
+                <span class="mc-exam-lecturer-label">Dozent:</span>@Model.Course!.LecturerName
             </p>
-        }
-    </div>
-}
+        </div>
+        <dl class="mc-exam-meta">
+            <div>
+                <dt>Datum</dt>
+                <dd>@Model.Date.ToString("dd.MM.yyyy")</dd>
+            </div>
+            <div>
+                <dt>Fragen</dt>
+                <dd>@Model.Questions.Count</dd>
+            </div>
+        </dl>
+    </header>
 
-<a asp-action="Index" class="btn btn-outline-secondary d-print-none">
-    <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
-</a>
+    <div class="mc-exam-fill-block d-none d-print-flex" aria-label="Ausfüllfelder">
+        <div class="mc-fill-field">
+            <span class="mc-fill-label">Name</span>
+            <span class="mc-fill-line" aria-hidden="true"></span>
+        </div>
+        <div class="mc-fill-field">
+            <span class="mc-fill-label">Matrikelnummer</span>
+            <span class="mc-fill-line mc-fill-line--narrow" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <hr class="mc-exam-divider" />
+
+    <section class="mc-exam-questions">
+        @{
+            var questionNumber = 1;
+        }
+        @foreach (var question in Model.Questions)
+        {
+            <article class="mc-exam-question">
+                <p class="mc-exam-question-text">@(questionNumber++). @question.Text</p>
+                <div class="mc-exam-answers">
+                    @for (var i = 0; i < question.AnswerOptions.Count; i++)
+                    {
+                        var option = question.AnswerOptions[i];
+                        <div class="mc-exam-answer">
+                            <span class="mc-answer-letter">@((char)('A' + i))</span>
+                            <span>@option.Text</span>
+                            @if (option.IsCorrect)
+                            {
+                                <span class="mc-answer-badge d-print-none">
+                                    <i class="bi bi-check-lg"></i>Richtig
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+            </article>
+        }
+    </section>
+</article>
+
+<div class="d-print-none mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
+    </a>
+</div>

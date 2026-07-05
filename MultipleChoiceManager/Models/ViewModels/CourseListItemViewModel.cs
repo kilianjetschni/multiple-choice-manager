@@ -11,4 +11,6 @@ public class CourseListItemViewModel
     public CourseLevel Level { get; set; }
 
     public int ChapterCount { get; set; }
+
+    public int ExamCount { get; set; }
 }
