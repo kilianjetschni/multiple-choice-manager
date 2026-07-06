@@ -25,6 +25,21 @@ im SoSe 26.
 - Gemini API
 - Bootstrap
 
+## App-Zugriff
+
+Die Anwendung kann lokal oder online gestartet werden.
+
+**Lokal starten:**
+```bash
+cd MultipleChoiceManager
+dotnet run
+```
+
+Die Anwendung ist dann unter http://localhost:5262/ erreichbar.
+
+**Online:**
+Die App ist unter https://multiple-choice-manager-hseyakhwdhhra7cg.westeurope-01.azurewebsites.net/ verfügbar.
+
 
 ## Beteiligte
 
