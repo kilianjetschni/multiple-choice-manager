@@ -42,7 +42,7 @@
         <form asp-action="Generate" method="post" class="m-0"
               data-ai-busy-form
               data-ai-busy-title="KI erstellt einen Fragenvorschlag"
-              data-ai-busy-message="Die PDF wird analysiert. Währenddessen ist die Oberfläche gesperrt.">
+              data-ai-busy-message="Die PDF wird analysiert.">
             <input type="hidden" name="chapterId" value="@Model.Id" />
             <button type="submit" class="btn btn-success" disabled="@string.IsNullOrWhiteSpace(Model.SlidesBlobUrl)">
                 <i class="bi bi-stars me-1"></i>Neue Frage generieren
@@ -122,7 +122,7 @@ else
                 <form asp-action="Review" asp-route-id="@question.Id" method="post" class="m-0"
                       data-ai-busy-form
                       data-ai-busy-title="KI prüft die Frage"
-                      data-ai-busy-message="Frage und Antwortoptionen werden geprüft. Währenddessen ist die Oberfläche gesperrt.">
+                      data-ai-busy-message="Frage und Antwortoptionen werden geprüft.">
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-check2-circle me-1"></i>@(string.IsNullOrWhiteSpace(question.AiReviewResultJson) ? "Prüfen" : "Neu prüfen")
                     </button>
@@ -379,7 +379,7 @@ else
     <div class="text-center px-4">
         <div class="spinner-border mb-3" aria-hidden="true"></div>
         <h2 id="aiBusyTitle" class="h5 text-white">KI arbeitet</h2>
-        <p id="aiBusyMessage" class="mb-0">Bitte warten. Die Oberfläche ist währenddessen gesperrt.</p>
+        <p id="aiBusyMessage" class="mb-0">Bitte warten.</p>
     </div>
 </div>
 
@@ -393,7 +393,7 @@ else
             document.querySelectorAll('form[data-ai-busy-form]').forEach((form) => {
                 form.addEventListener('submit', () => {
                     title.textContent = form.dataset.aiBusyTitle || 'KI arbeitet';
-                    message.textContent = form.dataset.aiBusyMessage || 'Bitte warten. Die Oberfläche ist währenddessen gesperrt.';
+                    message.textContent = form.dataset.aiBusyMessage || 'Bitte warten.';
                     overlay.classList.remove('d-none');
                     overlay.classList.add('d-flex');
                     document.getElementById('aiPageContent')?.setAttribute('inert', '');

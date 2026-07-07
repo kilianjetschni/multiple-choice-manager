@@ -76,6 +76,7 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
         }
 
         ValidateSlidesFile(viewModel.SlidesFile);
+        await ValidateUniqueChapterNumberAsync(viewModel);
 
         if (!ModelState.IsValid)
         {
@@ -145,7 +146,9 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
             return NotFound();
         }
 
+        viewModel.CourseId = chapter.CourseId;
         ValidateSlidesFile(viewModel.SlidesFile);
+        await ValidateUniqueChapterNumberAsync(viewModel, chapter.Id);
 
         if (!ModelState.IsValid)
         {
@@ -266,6 +269,20 @@ public class ChaptersController(ApplicationDbContext context, IFileStorageServic
         {
             ModelState.AddModelError(nameof(ChapterFormViewModel.SlidesFile),
                 "Die Datei darf höchstens 20 MB groß sein.");
+        }
+    }
+
+    private async Task ValidateUniqueChapterNumberAsync(ChapterFormViewModel viewModel, int? ignoredChapterId = null)
+    {
+        var chapterNumberExists = await _context.Chapters.AnyAsync(ch =>
+            ch.CourseId == viewModel.CourseId
+            && ch.ChapterNumber == viewModel.ChapterNumber
+            && (!ignoredChapterId.HasValue || ch.Id != ignoredChapterId.Value));
+
+        if (chapterNumberExists)
+        {
+            ModelState.AddModelError(nameof(ChapterFormViewModel.ChapterNumber),
+                "Diese Kapitelnummer ist in der Lehrveranstaltung bereits vergeben.");
         }
     }
 }

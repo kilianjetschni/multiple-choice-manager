@@ -40,6 +40,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             chapter.Property(ch => ch.Title).HasMaxLength(200);
             chapter.Property(ch => ch.SlidesBlobUrl).HasMaxLength(500);
 
+            chapter.HasIndex(ch => new { ch.CourseId, ch.ChapterNumber })
+                .IsUnique();
+
             chapter.HasMany(ch => ch.Questions)
                 .WithOne(q => q.Chapter)
                 .HasForeignKey(q => q.ChapterId)
