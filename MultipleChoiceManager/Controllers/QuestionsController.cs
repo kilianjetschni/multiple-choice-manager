@@ -14,6 +14,8 @@ public class QuestionsController(
     IFileStorageService fileStorage,
     IQuestionAiService questionAiService) : Controller
 {
+    private const string GenericAiErrorMessage = "Es ist ein Fehler aufgetreten, bitte versuche es erneut.";
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly ApplicationDbContext _context = context;
@@ -266,7 +268,7 @@ public class QuestionsController(
         }
         catch (Exception ex) when (ex is InvalidOperationException or FileNotFoundException or HttpRequestException or ArgumentException)
         {
-            TempData["AiError"] = ex.Message;
+            TempData["AiError"] = GenericAiErrorMessage;
         }
 
         return RedirectToAction(nameof(Index), new { chapterId });
@@ -353,7 +355,7 @@ public class QuestionsController(
         }
         catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or ArgumentException)
         {
-            TempData["AiError"] = ex.Message;
+            TempData["AiError"] = GenericAiErrorMessage;
         }
 
         return RedirectToAction(nameof(Index), new { chapterId = question.ChapterId });

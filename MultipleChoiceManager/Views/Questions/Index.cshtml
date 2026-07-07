@@ -63,7 +63,7 @@
 
 @if (TempData["AiError"] is string errorMessage)
 {
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger" role="alert" data-transient-error-alert>
         <i class="bi bi-exclamation-triangle me-1"></i>@errorMessage
     </div>
 }
@@ -396,8 +396,15 @@ else
             const cancelButton = document.getElementById('aiCancelButton');
             const pageContent = document.getElementById('aiPageContent');
             let activeAiRequest = null;
+            let transientErrorAlert = document.querySelector('[data-transient-error-alert]');
+
+            const dismissTransientError = () => {
+                transientErrorAlert?.remove();
+                transientErrorAlert = null;
+            };
 
             const showBusyOverlay = (form) => {
+                dismissTransientError();
                 title.textContent = form.dataset.aiBusyTitle || 'KI arbeitet';
                 message.textContent = form.dataset.aiBusyMessage || 'Bitte warten.';
                 cancelButton.innerHTML = '<i class="bi bi-x-lg me-1"></i>Abbrechen';
@@ -456,6 +463,10 @@ else
                             return;
                         }
 
+                        if (!response.ok) {
+                            throw new Error('AI request failed.');
+                        }
+
                         if (response.redirected) {
                             window.location.assign(response.url);
                             return;
@@ -467,7 +478,7 @@ else
                         document.close();
                     } catch (error) {
                         if (error.name !== 'AbortError') {
-                            message.textContent = 'Die KI-Anfrage konnte nicht abgeschlossen werden.';
+                            message.textContent = 'Es ist ein Fehler aufgetreten, bitte versuche es erneut.';
                             cancelButton.textContent = 'Schließen';
                             return;
                         }
@@ -499,6 +510,16 @@ else
                     hideBusyOverlay(activeAiRequest.form);
                     activeAiRequest = null;
                 }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('[data-transient-error-alert]')) {
+                    dismissTransientError();
+                }
+            });
+
+            document.addEventListener('submit', () => {
+                dismissTransientError();
             });
 
             const proposalModalElement = document.getElementById('aiProposalModal');
