@@ -375,11 +375,15 @@ else
      class="ai-busy-overlay position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center text-white"
      role="status"
      aria-live="polite"
-     aria-modal="true">
+     aria-modal="true"
+     tabindex="-1">
     <div class="text-center px-4">
         <div class="spinner-border mb-3" aria-hidden="true"></div>
         <h2 id="aiBusyTitle" class="h5 text-white">KI arbeitet</h2>
-        <p id="aiBusyMessage" class="mb-0">Bitte warten.</p>
+        <p id="aiBusyMessage" class="mb-3">Bitte warten.</p>
+        <button type="button" class="btn btn-outline-light" id="aiCancelButton">
+            <i class="bi bi-x-lg me-1"></i>Abbrechen
+        </button>
     </div>
 </div>
 
@@ -389,21 +393,112 @@ else
             const overlay = document.getElementById('aiBusyOverlay');
             const title = document.getElementById('aiBusyTitle');
             const message = document.getElementById('aiBusyMessage');
+            const cancelButton = document.getElementById('aiCancelButton');
+            const pageContent = document.getElementById('aiPageContent');
+            let activeAiRequest = null;
+
+            const showBusyOverlay = (form) => {
+                title.textContent = form.dataset.aiBusyTitle || 'KI arbeitet';
+                message.textContent = form.dataset.aiBusyMessage || 'Bitte warten.';
+                cancelButton.innerHTML = '<i class="bi bi-x-lg me-1"></i>Abbrechen';
+                overlay.classList.remove('d-none');
+                overlay.classList.add('d-flex');
+                pageContent?.setAttribute('inert', '');
+                document.body.style.overflow = 'hidden';
+                document.body.setAttribute('aria-busy', 'true');
+
+                form.querySelectorAll('button').forEach((button) => {
+                    button.disabled = true;
+                });
+
+                cancelButton.focus();
+            };
+
+            const hideBusyOverlay = (form) => {
+                overlay.classList.add('d-none');
+                overlay.classList.remove('d-flex');
+                pageContent?.removeAttribute('inert');
+                document.body.style.overflow = '';
+                document.body.removeAttribute('aria-busy');
+
+                form?.querySelectorAll('button').forEach((button) => {
+                    button.disabled = false;
+                });
+
+                if (!form) {
+                    document.querySelectorAll('form[data-ai-busy-form] button').forEach((button) => {
+                        button.disabled = false;
+                    });
+                }
+            };
 
             document.querySelectorAll('form[data-ai-busy-form]').forEach((form) => {
-                form.addEventListener('submit', () => {
-                    title.textContent = form.dataset.aiBusyTitle || 'KI arbeitet';
-                    message.textContent = form.dataset.aiBusyMessage || 'Bitte warten.';
-                    overlay.classList.remove('d-none');
-                    overlay.classList.add('d-flex');
-                    document.getElementById('aiPageContent')?.setAttribute('inert', '');
-                    document.body.style.overflow = 'hidden';
-                    document.body.setAttribute('aria-busy', 'true');
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
 
-                    form.querySelectorAll('button').forEach((button) => {
-                        button.disabled = true;
-                    });
+                    if (activeAiRequest) {
+                        return;
+                    }
+
+                    const abortController = new AbortController();
+                    activeAiRequest = { abortController, form };
+                    showBusyOverlay(form);
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: form.method || 'post',
+                            body: new FormData(form),
+                            signal: abortController.signal,
+                            credentials: 'same-origin'
+                        });
+
+                        if (abortController.signal.aborted) {
+                            return;
+                        }
+
+                        if (response.redirected) {
+                            window.location.assign(response.url);
+                            return;
+                        }
+
+                        const html = await response.text();
+                        document.open();
+                        document.write(html);
+                        document.close();
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            message.textContent = 'Die KI-Anfrage konnte nicht abgeschlossen werden.';
+                            cancelButton.textContent = 'Schließen';
+                            return;
+                        }
+
+                        hideBusyOverlay(form);
+                    } finally {
+                        if (activeAiRequest?.abortController === abortController) {
+                            activeAiRequest = null;
+                        }
+                    }
                 });
+            });
+
+            cancelButton.addEventListener('click', () => {
+                if (activeAiRequest) {
+                    activeAiRequest.abortController.abort();
+                    hideBusyOverlay(activeAiRequest.form);
+                    activeAiRequest = null;
+                    cancelButton.innerHTML = '<i class="bi bi-x-lg me-1"></i>Abbrechen';
+                } else {
+                    hideBusyOverlay();
+                    cancelButton.innerHTML = '<i class="bi bi-x-lg me-1"></i>Abbrechen';
+                }
+            });
+
+            overlay.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && activeAiRequest) {
+                    activeAiRequest.abortController.abort();
+                    hideBusyOverlay(activeAiRequest.form);
+                    activeAiRequest = null;
+                }
             });
 
             const proposalModalElement = document.getElementById('aiProposalModal');
