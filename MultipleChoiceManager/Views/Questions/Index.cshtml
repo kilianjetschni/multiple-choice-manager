@@ -467,12 +467,12 @@ else
                             throw new Error('AI request failed.');
                         }
 
+                        const html = await response.text();
+
                         if (response.redirected) {
-                            window.location.assign(response.url);
-                            return;
+                            window.history.replaceState(null, '', response.url);
                         }
 
-                        const html = await response.text();
                         document.open();
                         document.write(html);
                         document.close();
